@@ -132,9 +132,13 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-count">7</span>
           <span class="site-state-item-name">日志</span>
         </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span>
       </div>
   </nav>
 </div>
@@ -150,6 +154,246 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://jy447.github.io/2026/10/24/alfa-connectome-notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="sunArise">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="sunArise">
+      <meta itemprop="description" content="quant - CS">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | sunArise">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/10/24/alfa-connectome-notes/" class="post-title-link" itemprop="url">Alfa Connectome notes, a streaming GRU for order-book prediction, its ceiling, and what the data turned out to be</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-10-24 12:10:00" itemprop="dateCreated datePublished" datetime="2026-10-24T12:10:00+08:00">2026-10-24</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>A working log from Wunder Fund’s Alfa Connectome challenge, written on 2026-10-24 while the competition is still running (deadline 2026-11-15, private re-scoring until 12-01). The organisers ask participants not to publish complete solutions before the end, so this post describes the approach, the measurements and the dead ends, not the submission code. All numbers are as of the writing date.</p>
+<h2 id="1-The-task"><a href="#1-The-task" class="headerlink" title="1. The task"></a>1. The task</h2><p>Each sequence is 20,000 rows of a limit order book stream with 112 anonymised features per row: for two instruments, i0 and i1, eleven bid and eleven ask price-like columns, their volumes, four trade-price and four trade-volume columns, plus eight extra columns. The targets t0 and t1 are two indicators of the future price movement of i0. The metric is a global weighted Pearson correlation, weights |clip(y, ±2)|, computed only on rows flagged <code>need_prediction</code> and <code>is_scored</code>, per target and then averaged.</p>
+<p>Inference runs on one CPU core with 16 GB of memory and 60 minutes for 1,970 test sequences, which is 39.4 million rows, about 90 microseconds per row. The training set has 10,607 sequences with labels but no scoring mask; the validation set has 1,873 sequences with labels and the mask. Five submissions per day.</p>
+<h2 id="2-What-the-models-look-like"><a href="#2-What-the-models-look-like" class="headerlink" title="2. What the models look like"></a>2. What the models look like</h2><p>The submission averages three members with fixed weights 0.5 &#x2F; 0.25 &#x2F; 0.25, 927,878 parameters in total, about 46 microseconds per row.</p>
+<h3 id="The-GRU-member-679-426-parameters"><a href="#The-GRU-member-679-426-parameters" class="headerlink" title="The GRU member (679,426 parameters)"></a>The GRU member (679,426 parameters)</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">input row, 112 columns</span><br><span class="line">  -&gt; standardise (x - mean) / std, clamp to [-8, 8]  (statistics from 64 training sequences)</span><br><span class="line">  -&gt; GRU layer 1: 112 -&gt; 256</span><br><span class="line">  -&gt; GRU layer 2: 256 -&gt; 256</span><br><span class="line">  -&gt; linear head: 256 -&gt; 2  (t0, t1)</span><br><span class="line">state: 2 x 256 floats carried across the 20,000 rows</span><br></pre></td></tr></table></figure>
+
+<h3 id="The-fusion-member-124-226-parameters-each-two-seeds"><a href="#The-fusion-member-124-226-parameters-each-two-seeds" class="headerlink" title="The fusion member (124,226 parameters each, two seeds)"></a>The fusion member (124,226 parameters each, two seeds)</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">input row, standardised and clamped</span><br><span class="line">  -&gt; feature branch, 5 x 112 = 560 columns:</span><br><span class="line">     raw, row difference, x - EMA(1/8), x - EMA(1/64), x - EMA(1/512)</span><br><span class="line">  -&gt; the branch&#x27;s own standardisation</span><br><span class="line">  -&gt; linear embedding 560 -&gt; 64, LeakyReLU(0.01)</span><br><span class="line">  -&gt; GRU, one layer: 64 -&gt; 128</span><br><span class="line">  -&gt; concat [GRU output 128, embedding 64] = 192  (the embedding skips into the head)</span><br><span class="line">  -&gt; linear 192 -&gt; 64, LeakyReLU -&gt; linear 64 -&gt; 2</span><br><span class="line">state: h 128 + previous row 112 + three EMAs of 112</span><br></pre></td></tr></table></figure>
+
+<h3 id="The-look-ahead-teacher-training-only-never-submitted"><a href="#The-look-ahead-teacher-training-only-never-submitted" class="headerlink" title="The look-ahead teacher (training only, never submitted)"></a>The look-ahead teacher (training only, never submitted)</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">causal half:  GRU 2 x 128, a smaller copy of the student</span><br><span class="line">future half:  rows t+1 .. t+K  (K = 25 or 50)</span><br><span class="line">  -&gt; [x, row difference] 224 -&gt; 64 linear embedding</span><br><span class="line">  -&gt; five gated dilated convolutions (kernel 2, dilations 1 2 4 8 10, tanh x sigmoid, residual), read forward over the K rows</span><br><span class="line">  -&gt; linear 64 -&gt; 128, zero-initialised, added to the GRU state</span><br><span class="line">  -&gt; linear head 128 -&gt; 2</span><br><span class="line">validation subset 0.81 (K = 25), 0.89 (K = 50)</span><br></pre></td></tr></table></figure>
+
+<p>There is no MLP stack, no attention and no normalisation layer inside the members. KAN and MLP heads, DyT residual GRU stacks, state attention, a delta memory, a Transformer student and an iTransformer teacher were all tried and scored within noise of this plain design or below it.</p>
+<h2 id="3-How-they-are-trained"><a href="#3-How-they-are-trained" class="headerlink" title="3. How they are trained"></a>3. How they are trained</h2><ol>
+<li><strong>Teachers on the training set</strong> (10,607 sequences, 3 epochs each): six small causal models (GRU 1x128, GRU 2x128, LSTM 1x128, two feature-branch GRUs, a distilled GRU; validation subset 0.689 to 0.696) and the look-ahead teachers that read the next 25 or 50 rows.</li>
+<li><strong>Students on the training set</strong>: 3 epochs, cosine schedule, peak learning rate 2e-3, 64 sequences per batch, truncated back-propagation in 1,024-row chunks. The loss is only the weighted distance to the teachers’ outputs (weights |clip(y)| plus a floor of 0.2), half on the six causal teachers and half on the look-ahead teacher. The GRU member distils the 25-row teacher, the fusion members the 50-row teacher.</li>
+<li><strong>Cross-fitted soft labels on the validation set</strong>: the look-ahead teacher is fine-tuned five times, each with one fold of the 1,873 sequences held out, and labels that fold. No sequence is labelled by a teacher that saw its targets.</li>
+<li><strong>Scored-row fine-tune</strong>: all parameters, 6 epochs, 32 sequences per batch, learning rate 2e-4 (1e-4 under test), weight decay 1e-4, gradient clip 1.0. Scored rows weigh 1, unscored rows 0.1, and the target is 0.2 times the true value plus 0.8 times the soft label. Two seeds per member, averaged in weight space.</li>
+<li><strong>Package</strong>: the three averaged models combined 0.25 &#x2F; 0.25 &#x2F; 0.50 and exported to numba kernels with half-precision matrices, one compiled call per row.</li>
+</ol>
+<p>Where the public score came from: a GRU 2x128 trained on the true labels scores 0.6479; the scored-row fine-tune adds +0.0071 (0.6550); the look-ahead teacher labels, the fusion members and the 2x256 size bring it to 0.6640; weight soups and a replay fine-tune add +0.0005 to 0.664539 (rank 66 of 5,334 at the time of writing). Of the +0.0167 total, about +0.0125 came from the labels the models are trained on and +0.0040 from the fine-tune procedure, soups and inference engineering. Architecture changes contributed nothing measurable.</p>
+<h2 id="4-What-was-tried-with-results"><a href="#4-What-was-tried-with-results" class="headerlink" title="4. What was tried, with results"></a>4. What was tried, with results</h2><table>
+<thead>
+<tr>
+<th>Theme</th>
+<th>What was tried</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Scored-row fine-tune</td>
+<td>fine-tune on the validation rows the metric scores</td>
+<td>public +0.0071, core</td>
+</tr>
+<tr>
+<td>Look-ahead teacher labels</td>
+<td>soft labels from a model that reads the next 25 to 50 rows, cross-fitted; horizons from 10 to 2,000 rows and event windows swept</td>
+<td>public about +0.0125 in total, core</td>
+</tr>
+<tr>
+<td>Soups and ensembling</td>
+<td>2 to 8 seeds per member, recipe soups, a fourth member (Transformer), fitted blend weights</td>
+<td>+0.0002 to +0.0005; the Transformer adds no diversity</td>
+</tr>
+<tr>
+<td>Model size and depth</td>
+<td>2x384, 2x512, 2x768, 3x256; 6-epoch and continued pretraining; second-generation teachers</td>
+<td>no gain; longer-trained parents lose 0.0033 under the old fine-tune</td>
+</tr>
+<tr>
+<td>Architecture variants</td>
+<td>KAN and MLP heads, DyT stacks, state attention, delta memory, cross-attention to i1, iTransformer teacher, a time-series foundation model zero-shot</td>
+<td>within noise or worse</td>
+</tr>
+<tr>
+<td>Per-unit handling</td>
+<td>output in ticks times unit, per-unit input standardisation, per-unit specialists, per-unit weights and biases</td>
+<td>-0.0002 to +0.0001</td>
+</tr>
+<tr>
+<td>Augmentation</td>
+<td>bid&#x2F;ask mirror as data, as test-time augmentation and as regulariser; instrument swap; corrected mirror</td>
+<td>negative on the gate</td>
+</tr>
+<tr>
+<td>More fine-tuning data</td>
+<td>replay of training sequences with predicted masks and soft labels; validation sequences in pretraining; pseudo-scored rows</td>
+<td>+0.0004 on the gate, 0 public</td>
+</tr>
+<tr>
+<td>Post-processing</td>
+<td>output smoothing, per-sequence corrections, per-unit calibration, test-time adaptation</td>
+<td>negative</td>
+</tr>
+<tr>
+<td>Hidden structure</td>
+<td>spread readers (the targets’ sum is minus the spread), a discrete pair head, sequence clustering, scoring-mask reconstruction</td>
+<td>the spread is unreadable at the scored rows; the rest negative</td>
+</tr>
+<tr>
+<td>Fine-tune learning rate</td>
+<td>1e-4 instead of 2e-4; 3-epoch and slow 9-epoch variants</td>
+<td>+0.0016 to +0.0020 on fold 0 for the GRU alone; 5-fold gate pending</td>
+</tr>
+<tr>
+<td>De-anonymised inputs</td>
+<td>a 20-column block from a move decoder: tick moves of i0 and i1, event-time counts, a spread estimate</td>
+<td>pending</td>
+</tr>
+</tbody></table>
+<p>One methodological lesson: a single-fold screen produced a false +0.0016 three times (mirror augmentation, a knob variant, output in ticks), and the 5-fold cross-fitted estimate wiped each of them out. Nothing goes to the leaderboard without the 5-fold gate (reference 0.663925).</p>
+<h2 id="5-What-the-data-turned-out-to-be"><a href="#5-What-the-data-turned-out-to-be" class="headerlink" title="5. What the data turned out to be"></a>5. What the data turned out to be</h2><ul>
+<li>Four tick units (0.1254, 0.2413, 0.4685, 0.6569) that never change inside a sequence. The large-tick unit carries 47.7% of the metric weight and is predicted at a correlation of 0.44, against 0.70 to 0.72 for the other three. A perfect large-tick unit alone would add +0.18 to the score.</li>
+<li>t0 &#x3D; F minus the ask and t1 &#x3D; the bid minus F, with one reference price F on the tick grid: F sits on a quote when the spread is 1 tick and on the midpoint when it is 2 ticks. F moves only when i0’s quotes move and is settled within roughly the next 8 to 16 quote changes, a few dozen to a few hundred rows.</li>
+<li>t0 + t1 equals minus the current spread (98% of decoded quote changes agree). Knowing it would be worth +0.06, but it cannot be read from the features at the scored rows: the price columns are a clipped linear mix of the levels, and every reader sits at the base rate there.</li>
+<li>The eight extra columns are clocks (time since the last quote change, the time step of the row, a slow clock); the trade columns are trade prints relative to the quotes. There is no instrument id, and clusters of sequences carry no exploitable information.</li>
+<li>The scoring mask is not a rule on the local path (AUC 0.88 with future rows, 0.94 with the whole history), so it cannot be reproduced on the training set. The 1,873 validation sequences are the only fine-tuning data, and halving them costs 0.0018.</li>
+<li>The training and validation sets come from different market regimes (separable with AUC 0.993). Training-regime sequences do not transfer to the test set even when selected and relabelled.</li>
+</ul>
+<h2 id="6-What-comes-next"><a href="#6-What-comes-next" class="headerlink" title="6. What comes next"></a>6. What comes next</h2><ol>
+<li>The 5-fold gate of the lower fine-tune learning rate. If it confirms at least +0.0005 on the package, all three members get full-data two-seed fine-tunes at the new rate, soups, a package and an upload; expected +0.001 to +0.002 public.</li>
+<li>The de-anonymised inputs. If fold 0 shows at least +0.001 for the GRU alone, they go through the 5-fold gate, then the decoder goes into the inference kernels (it runs at 10 microseconds per quote change, within budget), then full seeds.</li>
+<li>The two levers change different things, the optimiser and the inputs, so they should stack with each other and with the existing soups.</li>
+<li>Final selection: the window opens on 2026-11-01 at 23:59 UTC; the pool will be chosen by the 5-fold gate with the public score as a tie-break.</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://jy447.github.io/2026/05/28/%E4%B9%90%E5%9C%A8%E5%85%B6%E4%B8%AD%E7%9A%84%E5%A4%A9%E8%B5%8B%E6%96%BD%E5%B1%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="sunArise">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="sunArise">
+      <meta itemprop="description" content="quant - CS">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | sunArise">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/05/28/%E4%B9%90%E5%9C%A8%E5%85%B6%E4%B8%AD%E7%9A%84%E5%A4%A9%E8%B5%8B%E6%96%BD%E5%B1%95/" class="post-title-link" itemprop="url">乐在其中的天赋施展</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-05-29 00:12:42 / 修改时间：12:19:18" itemprop="dateCreated datePublished" datetime="2026-05-29T00:12:42+08:00">2026-05-29</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
