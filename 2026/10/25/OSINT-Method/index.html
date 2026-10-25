@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"jy447.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="GoalUse public data to uncover deeper information about missing persons (MPs) in these categories: FRIENDS, FAMILY, EMPLOYMENT_EDUCATION, BASIC_SUBJECT_INFO, ROMANTIC_PARTNERS, ADVANCED_SUBJECT_INFO,">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OSINT Method">
+<meta property="og:url" content="https://jy447.github.io/2026/10/25/OSINT-Method/index.html">
+<meta property="og:site_name" content="sunArise">
+<meta property="og:description" content="GoalUse public data to uncover deeper information about missing persons (MPs) in these categories: FRIENDS, FAMILY, EMPLOYMENT_EDUCATION, BASIC_SUBJECT_INFO, ROMANTIC_PARTNERS, ADVANCED_SUBJECT_INFO,">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://jy447.github.io/images/ace-attorney-turnabout.jpg">
+<meta property="article:published_time" content="2026-10-25T03:40:00.000Z">
+<meta property="article:modified_time" content="2026-10-25T15:45:45.284Z">
+<meta property="article:author" content="sunArise">
+<meta property="article:tag" content="OSINT">
+<meta property="article:tag" content="missing persons">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jy447.github.io/images/ace-attorney-turnabout.jpg">
+
+
+<link rel="canonical" href="https://jy447.github.io/2026/10/25/OSINT-Method/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://jy447.github.io/2026/10/25/OSINT-Method/","path":"/2026/10/25/OSINT-Method/","title":"OSINT Method"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>OSINT Method | sunArise</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">sunArise</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">记录与思考</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Goal"><span class="nav-number">1.</span> <span class="nav-text">Goal</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Some-skills"><span class="nav-number">2.</span> <span class="nav-text">Some skills</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-truth-is-hidden"><span class="nav-number">3.</span> <span class="nav-text">The truth is hidden</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Turn-the-idea-around"><span class="nav-number">4.</span> <span class="nav-text">Turn the idea around</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Public-data"><span class="nav-number">5.</span> <span class="nav-text">Public data</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">sunArise</p>
+  <div class="site-description" itemprop="description">quant - CS</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jy447.github.io/2026/10/25/OSINT-Method/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="sunArise">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="sunArise">
+      <meta itemprop="description" content="quant - CS">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="OSINT Method | sunArise">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          OSINT Method
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-10-25 11:40:00 / 修改时间：23:45:45" itemprop="dateCreated datePublished" datetime="2026-10-25T11:40:00+08:00">2026-10-25</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="Goal"><a href="#Goal" class="headerlink" title="Goal"></a>Goal</h2><p>Use public data to uncover deeper information about missing persons (MPs) in these categories: FRIENDS, FAMILY, EMPLOYMENT_EDUCATION, BASIC_SUBJECT_INFO, ROMANTIC_PARTNERS, ADVANCED_SUBJECT_INFO, DAY_LAST_SEEN, ADVANCING_THE_TIMELINE (ATT, a flag that is rarely submitted) and LOCATION. Even in a world as connected as ours, many people are still missing.</p>
+<h2 id="Some-skills"><a href="#Some-skills" class="headerlink" title="Some skills"></a>Some skills</h2><p>For simplicity, I call the missing person “he”, whether the person is male or female.</p>
+<p>Social media matters most. Relatives and friends post appeals asking for information and tracing the person’s movements. On some forums, people who were near the places involved report that they may have seen the MP.</p>
+<p>A Google account can reveal location history. If the MP’s phone is missing, the police can sometimes get records from the mobile carrier. That is hard for a locked iPhone, or for an eSIM registered in another country, for example when a tourist goes missing abroad. In a kidnapping or another extreme situation, someone else may control the MP’s phone and accounts, and may log in to post or delete things. Facebook offers a profile lock in some regions, but a locked profile may still be visible from other regions, so a VPN may help.</p>
+<p>Some MPs have long criminal records and many different names. Some name changes are deliberate, for example to deceive the women they live with or to evade responsibility for what they did. Others come from family changes or other turning points in life, such as a marriage.</p>
+<p>A court record may list only an assault, a larceny, property destruction, a false report, a failure to appear and one public intoxication, while the real underlying problem may be drug abuse.</p>
+<p>The places where people live, work or travel range from good to bad. Whatever a person does leaves a trace, and even public data can bring deeper or hidden facts to light. For example, a hostel may say it has no luggage storage, yet the MP still left his luggage there. That suggests he knew the place well and had stayed there several times. He meant to come back for the luggage, but something stopped him.</p>
+<h2 id="The-truth-is-hidden"><a href="#The-truth-is-hidden" class="headerlink" title="The truth is hidden"></a>The truth is hidden</h2><p>Some MPs choose to disappear, to hide from or escape something. Others clearly vanish against their will.</p>
+<p>Someone who disappears voluntarily may still stay in touch with the people closest to him. So if his Facebook friends A and B share a mutual friend C, C may be his new identity. People do not change overnight; there is usually a trigger. And even when people change, traces of their past remain. It is naive to assume that someone with a long criminal record will never offend again, although that does happen.</p>
+<p>Involuntary disappearances have so many possible explanations that reaching an answer takes a great deal of effort and some luck.</p>
+<h2 id="Turn-the-idea-around"><a href="#Turn-the-idea-around" class="headerlink" title="Turn the idea around"></a>Turn the idea around</h2><p>This is the most important skill when you play Phoenix Wright in Ace Attorney. In complicated or unsolved cases, something that looks impossible may still have happened another way.</p>
+<p>For example, a missing person had a ticket from A to B that was never scanned, and no camera at A saw him leave. Common sense says he is still somewhere around A and never reached B. But other solid clues show that he did reach B, by whatever means. And if that route is on the FBI’s list of high-intensity areas for commercial sex trafficking, the whole picture changes.</p>
+<p>That is an extreme case. But look at it the other way: if everything that happened could be predicted and known, there would be no unsolved cases in the world.</p>
+<img src="/images/ace-attorney-turnabout.jpg" alt="Phoenix Wright points his attorney's badge in court (Ace Attorney fan art)" width="560" />
+
+<h2 id="Public-data"><a href="#Public-data" class="headerlink" title="Public data"></a>Public data</h2><p>The police can use non-public data. But whether the data is public or not, logic and reasoning are what matter most.</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OSINT/" rel="tag"># OSINT</a>
+              <a href="/tags/missing-persons/" rel="tag"># missing persons</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/10/24/alfa-connectome-notes/" rel="prev" title="Alfa Connectome notes, a streaming GRU for order-book prediction, its ceiling, and what the data turned out to be">
+                  <i class="fa fa-angle-left"></i> Alfa Connectome notes, a streaming GRU for order-book prediction, its ceiling, and what the data turned out to be
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">sunArise</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
