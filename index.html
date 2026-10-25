@@ -132,12 +132,12 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-count">9</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
@@ -154,6 +154,339 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://jy447.github.io/2026/10/25/kunlun-welllog-notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="sunArise">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="sunArise">
+      <meta itemprop="description" content="quant - CS">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | sunArise">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/10/25/kunlun-welllog-notes/" class="post-title-link" itemprop="url">Kunlun well-log notes, reservoir parameters whose labels are an interpreter's formulas, law snapping, and where the points are lost</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-10-25 18:15:00" itemprop="dateCreated datePublished" datetime="2026-10-25T18:15:00+08:00">2026-10-25</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>A working log from the well-log problem of the PetroChina algorithm challenge (中国石油算法挑战赛, preliminary round on the Kunlun platform), written on 2026-10-25 while the round is still open. It closes on 2026-10-30, and advancement uses a hidden board scored after the close. The post describes the task, what the labels turned out to be, the model, the measurements and the dead ends, not the package code. All numbers are as of the writing date.</p>
+<p>The round has four problems: pump anomaly warning, fracturing oil-gain prediction, well-log reservoir parameters and reservoir connectivity. On the pump and fracturing boards the tenth place sits at 100.0 and 98.02, scores no forecast produces, so those two got the remaining effort and the well-log board, the one with an ordinary spread (first place 84.38, tenth about 84.1, fiftieth 83.53), got most of it. Our package stands at 83.479, rank 62, up from the team’s 82.16 baseline of 09-14.</p>
+<h2 id="1-The-task"><a href="#1-The-task" class="headerlink" title="1. The task"></a>1. The task</h2><ul>
+<li>80 training wells with 730,268 depth points and 10 test wells with 95,948 points, at a 0.1 m step, one text file per well.</li>
+<li>Inputs per depth point: depth, gamma ray (GR), photoelectric factor (PE), spontaneous potential (SP), caliper (CAL), sonic travel time (AC), bulk density (DEN), neutron (CNL), two resistivities (RXO shallow, RT deep), deviation and azimuth, bit size, casing.</li>
+<li>Targets: porosity POR in percent, permeability PERM in mD, water saturation SW in percent. Non-reservoir rows carry the defaults 0.1 &#x2F; 0.01 &#x2F; 99.9, each target with its own default mask, so each target is a gate decision (default or continuous) and a value decision. Continuous rows are 32 % (POR), 31 % (PERM) and 28 % (SW) of the training rows.</li>
+<li>The metric is tolerance-based and discontinuous:</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">POR point  = max(0, 1 - |p - y| / (0.08 * |y|))</span><br><span class="line">PERM point = max(0, 1 - |log10(p / y)|)</span><br><span class="line">SW point   = max(0, 1 - |p - y| / (0.05 * |y|))</span><br><span class="line">score      = 100 * (0.30 * mean POR point + 0.35 * mean PERM point + 0.35 * mean SW point)</span><br></pre></td></tr></table></figure>
+
+<p>A default row scores a full point only when the prediction is the default too. Outside the tolerance, extra regression accuracy earns nothing.</p>
+<ul>
+<li>The public A-board scores 5 of the 10 test wells, the hidden B-board all 10. Per-well out-of-fold scores have a standard deviation of 4.6, so the A-board carries about 2 points of standard error. Five submissions per problem per China date, and a package must reproduce its result from the submitted code or the team is disqualified.</li>
+</ul>
+<h2 id="2-What-the-labels-turned-out-to-be"><a href="#2-What-the-labels-turned-out-to-be" class="headerlink" title="2. What the labels turned out to be"></a>2. What the labels turned out to be</h2><p>The labels are not a smooth function of the logs. They are an interpreter’s discrete formulas, chosen per sub-layer.</p>
+<table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Structure</th>
+<th>Numbers</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>POR</td>
+<td>11 linear laws of one curve, chosen per sub-layer: 5 density laws POR &#x3D; b + s · DEN and 6 sonic laws POR &#x3D; b + s · AC</td>
+<td>for example POR &#x3D; 136.5 − 50.0 DEN, POR &#x3D; 118.449 − 43.7532 DEN, POR &#x3D; 0.2253 AC − 37.91; 53 % of continuous rows fit exactly one law within 0.25 porosity units, 29 % fit two or more, 18 % none</td>
+</tr>
+<tr>
+<td>PERM</td>
+<td>7 laws log10 PERM &#x3D; a + s · POR, chosen per row</td>
+<td>for example log10 PERM &#x3D; 0.1355 POR − 2.183; the same-law stretch is one row at the median, so the law choice is noisy</td>
+</tr>
+<tr>
+<td>SW</td>
+<td>Archie with n &#x3D; 2 and m &#x3D; 2 (some m &#x3D; 1.86): log10 SW &#x3D; c − 0.5 log10 RT − log10 POR, using the label POR and the raw RT</td>
+<td>the constant c (the water resistivity) changes about 62 times per well in an erratic sequence; no statistic of the logs computes it</td>
+</tr>
+</tbody></table>
+<p>Other measurements on the labels:</p>
+<ul>
+<li>5,089 reservoir layers (runs of continuous POR), median 26 rows. The porosity family (density or sonic) is constant inside a layer (purity 0.99) and switches between consecutive layers 12 % of the time; sonic-law layers are the shallow, high-porosity, low-density, low-GR ones.</li>
+<li>Inside a layer the law switches in contiguous depth sub-intervals, but the switch points sit on no curve inflection and the laws overlap in curve range, so no piecewise function of DEN or AC reproduces a layer.</li>
+<li>The gate is a reservoir flag drawn per zone, not a cutoff on porosity: continuous POR labels go down to 0, and the would-be law porosity of default rows beside a zone has the same distribution as the zone’s edge rows. Gate misses are whole thin layers (median 15 rows, 66 % below 10 porosity units, high resistivity), not edges.</li>
+<li>The SW labels use the raw RT: inside a continuous run the Archie constant computed with the raw RT is flat (median deviation 0.004 in log10), and every smoothed RT or RXO fits worse.</li>
+<li>SW constant jumps and POR-law switches share boundaries part of the time: the probability of a POR-law switch is 0.40 at an SW jump against 0.057 where SW is calm. The SW constant does not transfer between wells by absolute depth.</li>
+<li>Whole-well fits looked poor only because the constants change by zone: within 1 to 10 m windows POR is linear in the logs with R² 0.991 to 0.998, and SW is Archie with slope −0.495 on log RT.</li>
+</ul>
+<h2 id="3-The-model-piece-by-piece"><a href="#3-The-model-piece-by-piece" class="headerlink" title="3. The model, piece by piece"></a>3. The model, piece by piece</h2><p>The package is one directory with the same five scripts for each well-fold split: train, calibrate, predict, validate, make the code zip. Two splits of the 80 wells into 5 folds are trained and averaged (10 fold directories).</p>
+<table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>What it is</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Features</td>
+<td>425 label-free features: raw curves and quality flags, petrophysical proxies (density, sonic and neutron porosity, Archie-form saturation, porosity-permeability relations), apparent water resistivity Rwa &#x3D; RT × (density porosity)² with rolling 5 &#x2F; 20 &#x2F; 50 % quantiles over 10 to 500 m, formation context (medians and quantiles of GR, SP, DEN, AC, CNL, log RT over 30 &#x2F; 100 &#x2F; 300 m). The SW models add 61 features from a nested cross-fitted porosity (486 in total)</td>
+<td>the Rwa quantile features lifted SW regression on continuous rows from 0.174 to 0.180 and are the top feature in every fold; exact porosity inside the SW features matters (SW 0.194 with the predicted porosity, 0.230 with the label porosity)</td>
+</tr>
+<tr>
+<td>Gates</td>
+<td>per target, default against continuous: LightGBM, CatBoost and a 63-leaf LightGBM, probabilities median-smoothed over 5 rows, mixed, cut at calibrated thresholds 0.725 &#x2F; 0.6 &#x2F; 0.9</td>
+<td>the SW threshold is high because the SW value is unreliable; gate errors are whole thin layers and no post-processing fixes them</td>
+</tr>
+<tr>
+<td>POR regression</td>
+<td>LightGBM L1, CatBoost MAE and a big LightGBM on the residual POR − por_law (the density law, the sonic law when DEN is missing)</td>
+<td>the L1 loss is what makes the trees good here (continuous-row score 0.347 against 0.280 for L2); the residual target added +0.012</td>
+</tr>
+<tr>
+<td>POR law routers</td>
+<td>12-class routers (none plus 11 laws), 5 groups × 3 seeds averaged, probabilities averaged over a 3-row depth window, the row always snapped to the most probable law</td>
+<td>snapping lifted continuous-row POR from 0.356 to 0.470 at once; each group is a different answer to “which law is the label when two laws fit”: the first in the list, the closest, all of them weighted by score, the whole candidate set (a partial-label loss), the one with the best expected score; they add +0.032, +0.016, +0.022, +0.018 in sequence</td>
+</tr>
+<tr>
+<td>PERM</td>
+<td>log10 regression with the same three members, 8-class routers, snapped to the law value at the snapped POR when the law probability exceeds 0.7</td>
+<td>PERM laws are per row, so the regression carries most of the score (0.811 on continuous rows)</td>
+</tr>
+<tr>
+<td>SW</td>
+<td>gate plus regression on the 486 features, no snapping</td>
+<td>a classifier picks the right SW law on only 21 % of exact rows, and snapping lowers the score even with the label porosity</td>
+</tr>
+<tr>
+<td>Calibration</td>
+<td>blend weights, gate mix, thresholds, scales, snap thresholds and law window chosen on the out-of-fold predictions with the official metric; a leave-one-fold-out “cross-fitted OOF” is reported</td>
+<td>differences under 0.05 are calibration noise</td>
+</tr>
+<tr>
+<td>Checks</td>
+<td>result format check, 5 unit tests, and a clean-room rerun of every package with an identical SHA256</td>
+<td>the rules disqualify code that does not reproduce the result</td>
+</tr>
+</tbody></table>
+<h2 id="4-Score-history"><a href="#4-Score-history" class="headerlink" title="4. Score history"></a>4. Score history</h2><table>
+<thead>
+<tr>
+<th>Package</th>
+<th align="right">Cross-fitted OOF</th>
+<th align="right">A-board</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>team baseline (09-14)</td>
+<td align="right"></td>
+<td align="right">82.16</td>
+<td>the organisers’ pipeline with the team’s code</td>
+</tr>
+<tr>
+<td>rwa (10-19)</td>
+<td align="right">80.57</td>
+<td align="right"></td>
+<td>apparent-water-resistivity features</td>
+</tr>
+<tr>
+<td>zone (10-19)</td>
+<td align="right">80.84</td>
+<td align="right"></td>
+<td>POR residual on the density law, nested stage-1 porosity for SW, context features</td>
+</tr>
+<tr>
+<td>zone2 (10-19)</td>
+<td align="right">81.74</td>
+<td align="right">83.34</td>
+<td>law snapping (+0.73 on the board)</td>
+</tr>
+<tr>
+<td>laws3 &#x2F; laws7 (10-20)</td>
+<td align="right">81.79 &#x2F; 81.86</td>
+<td align="right">83.391 &#x2F; 83.405</td>
+<td>CatBoost routers, 3 seeds, CatBoost gates, 3-row smoothing</td>
+</tr>
+<tr>
+<td>laws13 (10-22)</td>
+<td align="right">81.92</td>
+<td align="right">83.415</td>
+<td>closest-law and soft score-share router targets</td>
+</tr>
+<tr>
+<td>two-split (10-22)</td>
+<td align="right">82.00</td>
+<td align="right">83.473</td>
+<td>second well-fold split averaged</td>
+</tr>
+<tr>
+<td>two14 (10-23)</td>
+<td align="right">82.02</td>
+<td align="right">83.477</td>
+<td>candidate-set routers</td>
+</tr>
+<tr>
+<td>two15 (10-23)</td>
+<td align="right">82.06</td>
+<td align="right">83.479</td>
+<td>reward-maximisation routers; team best</td>
+</tr>
+<tr>
+<td>knob probes (10-25)</td>
+<td align="right"></td>
+<td align="right">83.353 to 83.418</td>
+<td>POR 0.65 &#x2F; SW 0.95 thresholds, SW gate 0.97, POR scale × 1.01, PERM gate 0.50, PERM snap 0.60: none helps</td>
+</tr>
+</tbody></table>
+<p>The gap between the OOF (82.06) and the A-board (83.48) says the five public wells are easier than the average training well, and a 0.1 difference between packages is within the calibration noise.</p>
+<h2 id="5-What-worked-in-order-of-board-value"><a href="#5-What-worked-in-order-of-board-value" class="headerlink" title="5. What worked, in order of board value"></a>5. What worked, in order of board value</h2><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Mechanism</th>
+<th align="right">OOF</th>
+<th align="right">Board</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>law snapping</td>
+<td>the labels are the interpreter’s formulas; a router picks the law and the row takes the exact value</td>
+<td align="right">+0.9</td>
+<td align="right">+0.73</td>
+</tr>
+<tr>
+<td>physics-shaped targets and features (POR residual on the density law, Rwa quantiles, formation context)</td>
+<td>the pre-law pipeline</td>
+<td align="right">+0.41</td>
+<td align="right">part of zone2’s +1.2</td>
+</tr>
+<tr>
+<td>CatBoost routers, 3 seeds, 3-row smoothing, CatBoost gates</td>
+<td>routing accuracy 0.457 to 0.469 on continuous rows per step; seeds saturate at 3</td>
+<td align="right">+0.12</td>
+<td align="right">+0.065</td>
+</tr>
+<tr>
+<td>second well-fold split averaged</td>
+<td>a resampling ensemble; the learning curve still rises at 64 wells</td>
+<td align="right">+0.079</td>
+<td align="right">+0.058</td>
+</tr>
+<tr>
+<td>router target definition (closest, soft, candidate set, reward)</td>
+<td>label noise of the first-law rule on the 29 % of rows that fit several laws</td>
+<td align="right">+0.090</td>
+<td align="right">+0.010 measured for the first two groups</td>
+</tr>
+</tbody></table>
+<p>A third split lost 0.008 OOF and was not submitted, so part of the second split’s gain was that split’s luck.</p>
+<h2 id="6-Where-the-points-are-lost"><a href="#6-Where-the-points-are-lost" class="headerlink" title="6. Where the points are lost"></a>6. Where the points are lost</h2><p>Loss budget of a mid-campaign package on the cross-fitted OOF (730,268 rows):</p>
+<table>
+<thead>
+<tr>
+<th>Pool</th>
+<th align="right">Points lost</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SW: continuous rows predicted default</td>
+<td align="right">3.84</td>
+</tr>
+<tr>
+<td>SW: value on rows both call continuous (score 0.211 there)</td>
+<td align="right">4.81</td>
+</tr>
+<tr>
+<td>POR: value on rows both call continuous (score 0.514; the best-law oracle scores 0.829)</td>
+<td align="right">3.90</td>
+</tr>
+<tr>
+<td>POR: continuous rows predicted default</td>
+<td align="right">1.76</td>
+</tr>
+<tr>
+<td>PERM: missed rows &#x2F; value</td>
+<td align="right">1.58 &#x2F; 1.79</td>
+</tr>
+</tbody></table>
+<p>SW loses about 8.9 weighted points across its gate and value pools. With the true water-resistivity constant and the predicted porosity SW would score 0.394 on the both-continuous rows instead of 0.211, and 0.861 with the true porosity as well. POR routing still has about 3.3 points of oracle headroom. PERM is comparatively strong.</p>
+<h2 id="7-What-did-not-work"><a href="#7-What-did-not-work" class="headerlink" title="7. What did not work"></a>7. What did not work</h2><ul>
+<li><strong>Formula targets for SW</strong>: predicting the zone constant with the trees and rebuilding SW (0.151 against 0.174 direct); the constant’s spread across zones (0.227 log units) exceeds SW’s own (0.103). Snapping SW to a law: 21 to 22 % law accuracy, worse even with the label porosity. Even with the true water&#x2F;oil labels and the label porosity, the law that best separates water from oil rows within ±15 m identifies the zone’s constant on only 44 % of rows.</li>
+<li><strong>SW sequence models on the 10-25 pass</strong>: Archie-constant smoothing in SW space, latent-law Viterbi decoding, quantile residuals, censored constant regression, direct optimisation of the official SW score, a 10-fold data-size probe (+0.0013). All negative or inside noise.</li>
+<li><strong>Law choice variants</strong>: one law per layer (−0.009), order-constrained Viterbi over depth (+0.002 as smoothing, worse when enforcing a law order), consensus votes per layer, analog-well transfer by depth shift (28 % right against 45 % for the classifier), a bigger law classifier (+0.0026 at twice the cost), a 13-class model replacing gate plus router (a tie), a GPU dilated-convolution + BiGRU law network (0.42 against 0.47 for LightGBM).</li>
+<li><strong>Gates</strong>: per-row expected-score gate (−0.03), hysteresis and length rules (+0.01), boundary-position features (0), predictable per-well thresholds.</li>
+<li><strong>Regressors and losses</strong>: L2 and linear-leaf trees (worse than L1), hedging SW and PERM between the default and the regression (−0.04), a mode-seeking Welsch refinement of the L1 member (+0.02, not worth shipping alone), a multi-task MLP on the features (worse alone, +0.02 blended), a dilated CNN on the engineered features (78.67 alone, +0.05 blended).</li>
+<li><strong>Every neural plug-in from the paper notes</strong>: SE, SK, FiLM, MoE, ALiBi, external memory, HiPPO, query pooling, DyT, engram, chunking, gradient reversal, retrieval priors, quantisation. None beats the tree router (0.33 against 0.39 routing accuracy for the best of them).</li>
+<li><strong>Depth-context stackers</strong> (LightGBM and neural) on top of the out-of-fold predictions.</li>
+<li><strong>More data in one model</strong>: an all-80-wells model set at weight 0.5 (−0.07 on the board; it cannot be calibrated), a third well-fold split (−0.008 OOF), ten folds instead of five (+0.0013).</li>
+<li><strong>Global knobs on the board</strong> (10-25): five probes, every one between −0.075 and +0.0026. Individually favourable thresholds do not compose: applying POR 0.65 and SW 0.95 together to the stronger package lost 0.075. The response surface is non-additive, and knob stacking is not a route to +0.6.</li>
+</ul>
+<h2 id="8-Lessons"><a href="#8-Lessons" class="headerlink" title="8. Lessons"></a>8. Lessons</h2><ol>
+<li>Read the label generator before modelling. Whole-well regressions looked like a noisy physical relation; 1 to 10 m windows showed exact linear laws, and a greedy search for sharp peaks in the label residuals over slope grids recovered them. That one finding is worth more than everything else combined.</li>
+<li>A tolerance metric rewards exact identification, not accuracy. Once a prediction is outside 8 % or 5 %, it earns zero, so a router that lands on the right law beats a regressor that is 6 % off everywhere.</li>
+<li>When the label is ambiguous (29 % of rows fit several laws), the definition of the router’s target is a lever. Five definitions of “the right law” are complementary and add up; more seeds of one definition saturate at three.</li>
+<li>The A-board is five wells with about 2 points of standard error, and a 0.1 OOF gain transfers at a fraction. Small levers need a cross-fitted OOF over all 80 wells before a slot is spent.</li>
+<li>Reproduce before submitting. The rules disqualify code that does not reproduce the result, and the fracturing problem showed that unpinned library versions change tree models by 1 to 10 % per well. Every well-log package passes a clean-room rerun with an identical SHA256.</li>
+<li>Machine notes that cost hours: a stopped cloud pod can resume on another host with an empty container disk, so weights and zips go to the network volume; three concurrent CatBoost GPU jobs stall a 16 GB card; kill processes only by PID or exact script name.</li>
+</ol>
+<h2 id="9-What-comes-next"><a href="#9-What-comes-next" class="headerlink" title="9. What comes next"></a>9. What comes next</h2><ol>
+<li>A joint latent-state decoder: the POR law, the PERM law and the SW constant decoded together, using the shared boundaries measured in section 2 (a POR-law switch is seven times more likely at an SW jump). Continue only if it reaches +0.20 OOF or +0.05 on continuous-row POR.</li>
+<li>SW state reconstruction with a different observation model: infer the water&#x2F;oil boundary from local evidence, solve the Archie constant from the water side, allow abrupt changes, keep the direct regression as a low-confidence fallback. This is the only model-side direction with a credible route to more than half a point.</li>
+<li>A test-prior router as a low-weight sixth group (+0.0058 total OOF, measured), worth one package probe but not a new pipeline.</li>
+<li>Not planned: larger sequence models, more fold splits, more individual POR laws, generic features already among the 425, and per-row smoothing over the same probabilities. All of these have produced gains below +0.05 OOF and transferred at a fraction of that.</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -279,6 +612,13 @@
 
       <time title="创建时间：2026-10-24 12:10:00" itemprop="dateCreated datePublished" datetime="2026-10-24T12:10:00+08:00">2026-10-24</time>
     </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-10-25 20:30:00" itemprop="dateModified" datetime="2026-10-25T20:30:00+08:00">2026-10-25</time>
+    </span>
 
   
 </div>
@@ -290,7 +630,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>A working log from Wunder Fund’s Alfa Connectome challenge, written on 2026-10-24 while the competition is still running (deadline 2026-11-15, private re-scoring until 12-01). The organisers ask participants not to publish complete solutions before the end, so this post describes the approach, the measurements and the dead ends, not the submission code. All numbers are as of the writing date.</p>
+          <p>A working log from Wunder Fund’s Alfa Connectome challenge, written on 2026-10-24 while the competition is still running (deadline 2026-11-15, private re-scoring until 12-01). Section 7, added on 2026-10-25, condenses the full model log. The organisers ask participants not to publish complete solutions before the end, so this post describes the approach, the measurements and the dead ends, not the submission code. All numbers are as of the writing date.</p>
 <h2 id="1-The-task"><a href="#1-The-task" class="headerlink" title="1. The task"></a>1. The task</h2><p>Each sequence is 20,000 rows of a limit order book stream with 112 anonymised features per row: for two instruments, i0 and i1, eleven bid and eleven ask price-like columns, their volumes, four trade-price and four trade-volume columns, plus eight extra columns. The targets t0 and t1 are two indicators of the future price movement of i0. The metric is a global weighted Pearson correlation, weights |clip(y, ±2)|, computed only on rows flagged <code>need_prediction</code> and <code>is_scored</code>, per target and then averaged.</p>
 <p>Inference runs on one CPU core with 16 GB of memory and 60 minutes for 1,970 test sequences, which is 39.4 million rows, about 90 microseconds per row. The training set has 10,607 sequences with labels but no scoring mask; the validation set has 1,873 sequences with labels and the mask. Five submissions per day.</p>
 <h2 id="2-What-the-models-look-like"><a href="#2-What-the-models-look-like" class="headerlink" title="2. What the models look like"></a>2. What the models look like</h2><p>The submission averages three members with fixed weights 0.5 &#x2F; 0.25 &#x2F; 0.25, 927,878 parameters in total, about 46 microseconds per row.</p>
@@ -392,6 +732,285 @@
 <li>The de-anonymised inputs. If fold 0 shows at least +0.001 for the GRU alone, they go through the 5-fold gate, then the decoder goes into the inference kernels (it runs at 10 microseconds per quote change, within budget), then full seeds.</li>
 <li>The two levers change different things, the optimiser and the inputs, so they should stack with each other and with the existing soups.</li>
 <li>Final selection: the window opens on 2026-11-01 at 23:59 UTC; the pool will be chosen by the 5-fold gate with the public score as a tie-break.</li>
+</ol>
+<h2 id="7-The-model-log-condensed-added-2026-10-25"><a href="#7-The-model-log-condensed-added-2026-10-25" class="headerlink" title="7. The model log, condensed (added 2026-10-25)"></a>7. The model log, condensed (added 2026-10-25)</h2><p>The working log behind this post is a 2,800-line file with one entry per method from 2026-09-29 to 2026-10-23, each with the code, a TL;DR, the algorithm, the results and the thoughts, followed by overview tables, every public upload and a ledger of what each change paid. It also holds the exact training commands and run names needed to rebuild the package, which is why it stays private until the competition ends. What follows is the part worth keeping.</p>
+<h3 id="7-1-Four-kinds-of-score-and-which-one-to-believe"><a href="#7-1-Four-kinds-of-score-and-which-one-to-believe" class="headerlink" title="7.1 Four kinds of score, and which one to believe"></a>7.1 Four kinds of score, and which one to believe</h3><table>
+<thead>
+<tr>
+<th>Score</th>
+<th>What it is</th>
+<th>Noise</th>
+<th>What it is good for</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Validation subset</td>
+<td>200 fixed validation sequences inside the training script</td>
+<td>sits about 0.017 above the full set</td>
+<td>relative comparison only</td>
+</tr>
+<tr>
+<td>Hold-out</td>
+<td>373 validation sequences never touched by the fine-tune, reported in the validation mix and in a leaderboard-matched mix of the four tick units (15 &#x2F; 14 &#x2F; 30 &#x2F; 41 %)</td>
+<td>standard error about 0.0006 on a package difference, plus ±0.0004 between fine-tune seeds and ±0.0008 between pretraining seeds</td>
+<td>pretraining changes; it mis-ranks fine-tuning changes because it comes from the same set the fine-tune fits (batch 16: +0.0009 hold-out, −0.0003 public)</td>
+</tr>
+<tr>
+<td>5-fold gate</td>
+<td>every candidate fine-tune run five times with one fold of the 1,873 validation sequences left out, each sequence scored by the model that did not see it</td>
+<td>standard error 0.0001 to 0.0004</td>
+<td>the selection score since 10-19; its sign matched the board on every calibration pair, and the public gain is about one third of the gate gain for label-side changes and about zero for replayed training data</td>
+</tr>
+<tr>
+<td>Public board</td>
+<td>5 uploads per UTC day</td>
+<td>one change per slot</td>
+<td>the final judge; gate gains under +0.0004 have never shown on it</td>
+</tr>
+</tbody></table>
+<p>Two recipes run under these scores. The smoke recipe (a one-layer GRU of width 128 on 2,500 sequences, 1 to 3 minutes) screens dozens of ideas; the full recipe (all 10,607 sequences, seven teachers, then the scored-row fine-tune, about 25 minutes) draws conclusions. Of five positive smoke signals re-checked in the full recipe, one survived. The smoke control lacks a second nonlinear stage, so anything that adds one looks good there.</p>
+<h3 id="7-2-Eleven-method-families"><a href="#7-2-Eleven-method-families" class="headerlink" title="7.2 Eleven method families"></a>7.2 Eleven method families</h3><table>
+<thead>
+<tr>
+<th>Family</th>
+<th>What it changes</th>
+<th>Best result</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Label engineering</td>
+<td>the target the model is trained towards: mask fine-tuning, distillation, look-ahead teachers, pure teacher labels, cross-fitted soft labels</td>
+<td>mask fine-tuning +0.007, distillation +0.003, look-ahead teachers +0.0012, pure teacher labels +0.0005, cross-fitted fine-tuning labels +0.0006, all public</td>
+<td>the one family that paid: every step on the board except ensembling, routing and soups was a label change</td>
+</tr>
+<tr>
+<td>Fine-tuning variants</td>
+<td>which parameters move and for how long: LoRA, Prefix, P-Tuning, LwF, DER, head-only, LP-FT, SWA, WiSE-FT, batch 8 to 64, 3 to 8 epochs, learning rates 1e-4 to 8e-4, unscored-row weights 0 to 1</td>
+<td>6 epochs with unscored-row weight 0.1 on soft labels: gate +0.00084</td>
+<td>full-parameter fine-tuning at batch 32, lr 2e-4, 6 epochs; head-only already gets 70 % of the gain; SWA, LwF, LP-FT and distillation inside the fine-tune are worse on the gate</td>
+</tr>
+<tr>
+<td>Ensembling and routing</td>
+<td>how models are combined: averaging, weight soups, member weights, tick-unit routing, regime MoE</td>
+<td>different-structure averaging +0.002, second fusion seed +0.0003, routing +0.0007, soups +0.00014, all public</td>
+<td>works only when the members differ in structure; residual correlations of 0.989 to 0.997 between members leave little to average</td>
+</tr>
+<tr>
+<td>Expanding features</td>
+<td>hand-made features (1,566), MiniRocket (2,397), embeddings, book physics, HiPPO, Engram, in-network column dynamics (1,008), decoded queues</td>
+<td>0 for the GRU; +0.04 for LightGBM, which still ends 0.033 below the GRU</td>
+<td>redundant for a recurrent net; useful only as ensemble diversity (the fusion member’s feature branch)</td>
+</tr>
+<tr>
+<td>Reweighting features</td>
+<td>VSN, SE, ECA, SK, CondConv, FiLM, column attention, zeroing one column block at a time</td>
+<td>about 0</td>
+<td>i0’s volume and price blocks carry the information (−0.039 and −0.021 when zeroed); no block hurts</td>
+</tr>
+<tr>
+<td>Self-supervised and auxiliary losses</td>
+<td>next-row prediction, MAE, CPC, MCR², DINO, representation distillation</td>
+<td>MCR² +0.0001</td>
+<td>none helps; DINO −0.0175</td>
+</tr>
+<tr>
+<td>Regularisation, optimisation, precision</td>
+<td>dropout, weight EMA, Zoneout, GaLore, BAdam, LOMO, Muon, QAT8, LSQ4, random crops</td>
+<td>QAT8 +0.0001</td>
+<td>none helps; optimiser swaps −0.02 to −0.06 at default settings</td>
+</tr>
+<tr>
+<td>Domain adaptation</td>
+<td>DANN, validation sequences in pretraining, density-ratio sampling</td>
+<td>smoke +0.0036, full −0.001</td>
+<td>mask fine-tuning already absorbs the shift</td>
+</tr>
+<tr>
+<td>Inference engineering</td>
+<td>NumPy, ONNX, numba kernels, int8, bfloat16, IEEE half weights, one compiled call per row</td>
+<td>no score change; platform time 41.8 min instead of 54.6 to 62.0</td>
+<td>what lets three members fit the 60-minute limit; two float32 packages were killed at 62 minutes</td>
+</tr>
+<tr>
+<td>Fine-tuning data</td>
+<td>data-size test, replay of training sequences with soft labels, pseudo-scored rows, bid&#x2F;ask mirror, instrument swap, test-time adaptation</td>
+<td>halving the data costs 0.0018; replay gate +0.0004 and public +0.00003; mirror and swap negative on the gate</td>
+<td>only the 1,873 validation sequences count; in-distribution copies that pose a slightly different task cost more than they give</td>
+</tr>
+<tr>
+<td>Validation and selection</td>
+<td>hold-out, paired bootstrap, package score, 5-fold gate, public diagnostics, post-processing of the package output</td>
+<td>the gate’s signs matched the board on all calibration pairs; no fixed transform of the package output improves it</td>
+<td>one change per public slot; fine-tuning changes through the gate, pretraining changes over several seeds</td>
+</tr>
+</tbody></table>
+<h3 id="7-3-Ten-network-types"><a href="#7-3-Ten-network-types" class="headerlink" title="7.3 Ten network types"></a>7.3 Ten network types</h3><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Members</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Nonlinear gated recurrence</td>
+<td>GRU, LSTM, plain RNN, IndRNN, sLSTM, CfC</td>
+<td>GRU and LSTM best; plain RNN −0.003, IndRNN −0.014, CfC −0.019</td>
+</tr>
+<tr>
+<td>Linear recurrence and state-space models</td>
+<td>Mamba, LRU, minGRU, RWKV, RetNet, mLSTM, linear Transformer, Griffin, QRNN, SRU, Gated DeltaNet, TTT, Titans</td>
+<td>all worse, from −0.007 (minGRU) to −0.052 (linear Transformer); the update has no nonlinearity on the previous state, so it cannot switch regimes</td>
+</tr>
+<tr>
+<td>Convolution over time</td>
+<td>TCN, WaveNet, Inception, deformable sampling</td>
+<td>−0.006 to +0.0002 as a student; the one place convolution helped is the teacher’s future-window reader</td>
+</tr>
+<tr>
+<td>Attention over GRU states</td>
+<td>sliding window, MQA, GQA, NSA, Swin, Linformer, PatchTST, DETR memory</td>
+<td>within ±0.0015</td>
+</tr>
+<tr>
+<td>Full Transformer</td>
+<td>Transformer 2×64 student; banded Transformer and iTransformer teachers</td>
+<td>ties the GRU as a student at 2.5× the inference cost; as a teacher it is the most accurate model built (validation subset 0.8396 against 0.8354 for the convolution teacher) and its student is worse</td>
+</tr>
+<tr>
+<td>Event-time designs</td>
+<td>event-clock GRU, hybrid row and event GRU, MOTR slots</td>
+<td>−0.008 to −0.027</td>
+</tr>
+<tr>
+<td>Stacks</td>
+<td>2 to 4 layers, residual, LayerNorm, DyT, gated DyT, SeeDNorm, widths 64 to 768</td>
+<td>1 to 2 layers +0.003; a 4-layer DyT residual stack +0.0007 in the full recipe but 126 µs per row, too slow to submit; wider and longer-trained all worse</td>
+</tr>
+<tr>
+<td>Output heads</td>
+<td>linear, MLP, KAN, MoE, ACON, classification</td>
+<td>+0.0008 to +0.0023 in smoke, a tie in the full recipe</td>
+</tr>
+<tr>
+<td>Input fronts</td>
+<td>feature branch, channel MLP, Mixer, Hire-MLP, VSN, SE</td>
+<td>Hire +0.0013 alone and +0.0005 in the package at +18 to 30 µs per row; not adopted</td>
+</tr>
+<tr>
+<td>Privileged teachers</td>
+<td>shifted GRU, multi-tap, event windows, gated dilated convolution over the next 10 to 100 rows, attention teachers</td>
+<td>the 25-row convolution teacher gives the best GRU student, the 50-row one the best fusion students; the student’s score falls as the teacher sees more</td>
+</tr>
+</tbody></table>
+<h3 id="7-4-The-package-taken-apart"><a href="#7-4-The-package-taken-apart" class="headerlink" title="7.4 The package taken apart"></a>7.4 The package taken apart</h3><p>Seventeen blocks were changed one at a time. The ones where the evidence says the choice matters:</p>
+<ul>
+<li><strong>Loss</strong>: weighted MSE with weight |clip(y)| is +0.017 over plain MSE. Its optimum is the maximiser of the weighted Pearson.</li>
+<li><strong>Recurrent core</strong>: a nonlinear gated unit. Every linear recurrence lost.</li>
+<li><strong>Depth</strong>: two layers (+0.003 over one). Beyond two, only residual paths with a bounded normalisation train, and they do not fit the time limit.</li>
+<li><strong>Pretraining labels</strong>: a 100 % teacher average, six causal teachers plus one future-window convolution teacher at six times their weight. The raw target only adds noise the student cannot explain.</li>
+<li><strong>Fine-tuning targets</strong>: 0.2 times the true value plus 0.8 times a cross-fitted look-ahead label. The one clear negative was a 100-row teacher’s label (−0.0003).</li>
+<li><strong>Fine-tuning procedure</strong>: all parameters, batch 32, lr 2e-4, 6 epochs, unscored-row weight 0.1. The scored rows are about three quarters of mask fine-tuning’s +0.007, new market data the rest.</li>
+<li><strong>Ensemble</strong>: members of different structures. All members share 99 % of their errors.</li>
+<li><strong>Inference</strong>: the kernels are bound by weight bandwidth (4.3 MB of float32 weights per row, more than a core’s L2 cache), so halving the bytes with IEEE half weights was the one speed lever that worked. Arithmetic tricks that win with a hot cache lose when the weights stream.</li>
+</ul>
+<p>Neutral after fine-tuning: the head, the input front for a single model, memory length (the model uses about the last 500 rows, and wiping older memory costs nothing), capacity beyond 2×256, soups (+0.00014), replay (+0.00003). One block leaks: any normalisation across time inside a chunk lets row t see later rows (a fake 0.741).</p>
+<h3 id="7-5-Why-nothing-inside-the-network-helps"><a href="#7-5-Why-nothing-inside-the-network-helps" class="headerlink" title="7.5 Why nothing inside the network helps"></a>7.5 Why nothing inside the network helps</h3><ul>
+<li>A model run backwards over the sequence scores 0.99. The target is a function of the future price path, and a causal model can only learn its expectation given the past.</li>
+<li>The bulk of the error is runs of same-direction errors. A stretch of hundreds of rows waits for the same price move; if the model guesses it wrong, the whole stretch is wrong. Correcting each sequence’s level with the true targets would be worth +0.029, level and scale +0.042. The error of a 50-row stretch correlates 0.72 with the previous stretch’s.</li>
+<li>Nothing visible in advance predicts those runs: i1’s moves, the clock columns and i0’s own moves all correlate at 0.03 or less with the next stretch’s error. Online correction with look-ahead teachers as delayed labels gains exactly 0 (the fitted correction strength is 0 every time). A +0.060 reported along the way turned out to be an oracle that peeked at the future and was retracted.</li>
+<li>The architectures’ advantages are real but solve problems this task does not have: very long context, parallel training, exact recall, irregular sampling, spatial structure between columns. What the task rewards is short nonlinear state-switching memory, clean labels and specialisation to the scored rows. The few architecture changes that helped all fit that: a second nonlinear stage, and depth made trainable by residual + DyT.</li>
+</ul>
+<h3 id="7-6-The-ledger"><a href="#7-6-The-ledger" class="headerlink" title="7.6 The ledger"></a>7.6 The ledger</h3><p>36 uploads, 34 scored, 2 killed by the time limit, 19 new bests. Total +0.01667 from 0.647872 to 0.664539. Of that, about +0.0125 came from the labels the models are trained on and about +0.0040 from combining models. Nothing else moved the board.</p>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Lever</th>
+<th align="right">Public gain</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>09-29</td>
+<td>mask fine-tuning on the validation set’s scored rows</td>
+<td align="right">+0.00715</td>
+</tr>
+<tr>
+<td>09-29</td>
+<td>a second member of another structure</td>
+<td align="right">+0.00167</td>
+</tr>
+<tr>
+<td>09-29</td>
+<td>per-unit specialists routed by the tick unit</td>
+<td align="right">+0.00067</td>
+</tr>
+<tr>
+<td>10-14</td>
+<td>distilled students (6 teachers, distill 0.8)</td>
+<td align="right">+0.00236</td>
+</tr>
+<tr>
+<td>10-15</td>
+<td>look-ahead teacher la50 and its second and third students</td>
+<td align="right">+0.00132</td>
+</tr>
+<tr>
+<td>10-16</td>
+<td>GRU 2×256 and the second fusion seed</td>
+<td align="right">+0.00037</td>
+</tr>
+<tr>
+<td>10-17</td>
+<td>convolution future-window teacher instead of la50</td>
+<td align="right">+0.00011</td>
+</tr>
+<tr>
+<td>10-18</td>
+<td>pure teacher labels (distill 1.0)</td>
+<td align="right">+0.00053</td>
+</tr>
+<tr>
+<td>10-18</td>
+<td>fusion re-trained with the conv teacher, GRU at batch 32</td>
+<td align="right">+0.00044</td>
+</tr>
+<tr>
+<td>10-18</td>
+<td>second fusion seed, 25-row teacher for the GRU</td>
+<td align="right">+0.00059</td>
+</tr>
+<tr>
+<td>10-19</td>
+<td>cross-fitted soft labels for the fusions (a &#x3D; 0.8) and the GRU (a &#x3D; 0.5), soups</td>
+<td align="right">+0.00070</td>
+</tr>
+<tr>
+<td>10-20</td>
+<td>25-row labels for the fusions, GRU labels a &#x3D; 0.8, 6 epochs, unscored weight 0.1</td>
+<td align="right">+0.00054</td>
+</tr>
+<tr>
+<td>10-20</td>
+<td>replay of in-regime training sequences</td>
+<td align="right">+0.00003</td>
+</tr>
+<tr>
+<td>10-22</td>
+<td>6-way GRU soup, then recipe soups</td>
+<td align="right">+0.00019</td>
+</tr>
+</tbody></table>
+<p>Public tests that lost: batch 16 (−0.0005), pure teacher labels a &#x3D; 1.0 for both members (−0.00027, the first gate gain that transferred with the wrong sign), labels from the package’s own out-of-fold predictions (−0.00057, a leak the nested check had already flagged), 6-way fusion soups (−0.00004), stacked per-unit labels (−0.00013).</p>
+<h3 id="7-7-Lessons-about-method"><a href="#7-7-Lessons-about-method" class="headerlink" title="7.7 Lessons about method"></a>7.7 Lessons about method</h3><ol>
+<li>A smoke signal is a reason to run the full recipe, never a conclusion.</li>
+<li>A hold-out drawn from the set the fine-tune fits rewards fitting it. Cross-fit over all sequences instead.</li>
+<li>Divide a gate gain by three to get the expected public gain for a label change; expect nothing for data from another regime.</li>
+<li>Labels made from a model’s own out-of-fold prediction inflate the gate. Run the nested check before trusting them.</li>
+<li>Gate gains under +0.0004 do not show on the board. Do not spend a slot on them.</li>
+<li>One change per public slot, or the result cannot be attributed.</li>
+<li>The cost: 71 pod queues, 47 local queues and 633 run directories bought +0.0028 on the board between 10-17 and 10-20.</li>
 </ol>
 
       

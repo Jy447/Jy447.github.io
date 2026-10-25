@@ -20,15 +20,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"jy447.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="A working log from Wunder Fund’s Alfa Connectome challenge, written on 2026-10-24 while the competition is still running (deadline 2026-11-15, private re-scoring until 12-01). The organisers ask parti">
+    <meta name="description" content="A working log from Wunder Fund’s Alfa Connectome challenge, written on 2026-10-24 while the competition is still running (deadline 2026-11-15, private re-scoring until 12-01). Section 7, added on 2026">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Alfa Connectome notes, a streaming GRU for order-book prediction, its ceiling, and what the data turned out to be">
 <meta property="og:url" content="https://jy447.github.io/2026/10/24/alfa-connectome-notes/index.html">
 <meta property="og:site_name" content="sunArise">
-<meta property="og:description" content="A working log from Wunder Fund’s Alfa Connectome challenge, written on 2026-10-24 while the competition is still running (deadline 2026-11-15, private re-scoring until 12-01). The organisers ask parti">
+<meta property="og:description" content="A working log from Wunder Fund’s Alfa Connectome challenge, written on 2026-10-24 while the competition is still running (deadline 2026-11-15, private re-scoring until 12-01). Section 7, added on 2026">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-10-24T04:10:00.000Z">
-<meta property="article:modified_time" content="2026-10-24T04:10:00.000Z">
+<meta property="article:modified_time" content="2026-10-25T12:30:00.000Z">
 <meta property="article:author" content="sunArise">
 <meta property="article:tag" content="competition">
 <meta property="article:tag" content="deep learning">
@@ -125,7 +125,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-The-task"><span class="nav-number">1.</span> <span class="nav-text">1. The task</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-What-the-models-look-like"><span class="nav-number">2.</span> <span class="nav-text">2. What the models look like</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-GRU-member-679-426-parameters"><span class="nav-number">2.1.</span> <span class="nav-text">The GRU member (679,426 parameters)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-fusion-member-124-226-parameters-each-two-seeds"><span class="nav-number">2.2.</span> <span class="nav-text">The fusion member (124,226 parameters each, two seeds)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-look-ahead-teacher-training-only-never-submitted"><span class="nav-number">2.3.</span> <span class="nav-text">The look-ahead teacher (training only, never submitted)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-How-they-are-trained"><span class="nav-number">3.</span> <span class="nav-text">3. How they are trained</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-What-was-tried-with-results"><span class="nav-number">4.</span> <span class="nav-text">4. What was tried, with results</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-What-the-data-turned-out-to-be"><span class="nav-number">5.</span> <span class="nav-text">5. What the data turned out to be</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-What-comes-next"><span class="nav-number">6.</span> <span class="nav-text">6. What comes next</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-The-task"><span class="nav-number">1.</span> <span class="nav-text">1. The task</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-What-the-models-look-like"><span class="nav-number">2.</span> <span class="nav-text">2. What the models look like</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-GRU-member-679-426-parameters"><span class="nav-number">2.1.</span> <span class="nav-text">The GRU member (679,426 parameters)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-fusion-member-124-226-parameters-each-two-seeds"><span class="nav-number">2.2.</span> <span class="nav-text">The fusion member (124,226 parameters each, two seeds)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-look-ahead-teacher-training-only-never-submitted"><span class="nav-number">2.3.</span> <span class="nav-text">The look-ahead teacher (training only, never submitted)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-How-they-are-trained"><span class="nav-number">3.</span> <span class="nav-text">3. How they are trained</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-What-was-tried-with-results"><span class="nav-number">4.</span> <span class="nav-text">4. What was tried, with results</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-What-the-data-turned-out-to-be"><span class="nav-number">5.</span> <span class="nav-text">5. What the data turned out to be</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-What-comes-next"><span class="nav-number">6.</span> <span class="nav-text">6. What comes next</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-The-model-log-condensed-added-2026-10-25"><span class="nav-number">7.</span> <span class="nav-text">7. The model log, condensed (added 2026-10-25)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-Four-kinds-of-score-and-which-one-to-believe"><span class="nav-number">7.1.</span> <span class="nav-text">7.1 Four kinds of score, and which one to believe</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-Eleven-method-families"><span class="nav-number">7.2.</span> <span class="nav-text">7.2 Eleven method families</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-Ten-network-types"><span class="nav-number">7.3.</span> <span class="nav-text">7.3 Ten network types</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-4-The-package-taken-apart"><span class="nav-number">7.4.</span> <span class="nav-text">7.4 The package taken apart</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-5-Why-nothing-inside-the-network-helps"><span class="nav-number">7.5.</span> <span class="nav-text">7.5 Why nothing inside the network helps</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-6-The-ledger"><span class="nav-number">7.6.</span> <span class="nav-text">7.6 The ledger</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-7-Lessons-about-method"><span class="nav-number">7.7.</span> <span class="nav-text">7.7 Lessons about method</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -138,12 +138,12 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-count">9</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
@@ -201,6 +201,13 @@
 
       <time title="创建时间：2026-10-24 12:10:00" itemprop="dateCreated datePublished" datetime="2026-10-24T12:10:00+08:00">2026-10-24</time>
     </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-10-25 20:30:00" itemprop="dateModified" datetime="2026-10-25T20:30:00+08:00">2026-10-25</time>
+    </span>
 
   
 </div>
@@ -211,7 +218,7 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>A working log from Wunder Fund’s Alfa Connectome challenge, written on 2026-10-24 while the competition is still running (deadline 2026-11-15, private re-scoring until 12-01). The organisers ask participants not to publish complete solutions before the end, so this post describes the approach, the measurements and the dead ends, not the submission code. All numbers are as of the writing date.</p>
+    <div class="post-body" itemprop="articleBody"><p>A working log from Wunder Fund’s Alfa Connectome challenge, written on 2026-10-24 while the competition is still running (deadline 2026-11-15, private re-scoring until 12-01). Section 7, added on 2026-10-25, condenses the full model log. The organisers ask participants not to publish complete solutions before the end, so this post describes the approach, the measurements and the dead ends, not the submission code. All numbers are as of the writing date.</p>
 <h2 id="1-The-task"><a href="#1-The-task" class="headerlink" title="1. The task"></a>1. The task</h2><p>Each sequence is 20,000 rows of a limit order book stream with 112 anonymised features per row: for two instruments, i0 and i1, eleven bid and eleven ask price-like columns, their volumes, four trade-price and four trade-volume columns, plus eight extra columns. The targets t0 and t1 are two indicators of the future price movement of i0. The metric is a global weighted Pearson correlation, weights |clip(y, ±2)|, computed only on rows flagged <code>need_prediction</code> and <code>is_scored</code>, per target and then averaged.</p>
 <p>Inference runs on one CPU core with 16 GB of memory and 60 minutes for 1,970 test sequences, which is 39.4 million rows, about 90 microseconds per row. The training set has 10,607 sequences with labels but no scoring mask; the validation set has 1,873 sequences with labels and the mask. Five submissions per day.</p>
 <h2 id="2-What-the-models-look-like"><a href="#2-What-the-models-look-like" class="headerlink" title="2. What the models look like"></a>2. What the models look like</h2><p>The submission averages three members with fixed weights 0.5 &#x2F; 0.25 &#x2F; 0.25, 927,878 parameters in total, about 46 microseconds per row.</p>
@@ -314,6 +321,285 @@
 <li>The two levers change different things, the optimiser and the inputs, so they should stack with each other and with the existing soups.</li>
 <li>Final selection: the window opens on 2026-11-01 at 23:59 UTC; the pool will be chosen by the 5-fold gate with the public score as a tie-break.</li>
 </ol>
+<h2 id="7-The-model-log-condensed-added-2026-10-25"><a href="#7-The-model-log-condensed-added-2026-10-25" class="headerlink" title="7. The model log, condensed (added 2026-10-25)"></a>7. The model log, condensed (added 2026-10-25)</h2><p>The working log behind this post is a 2,800-line file with one entry per method from 2026-09-29 to 2026-10-23, each with the code, a TL;DR, the algorithm, the results and the thoughts, followed by overview tables, every public upload and a ledger of what each change paid. It also holds the exact training commands and run names needed to rebuild the package, which is why it stays private until the competition ends. What follows is the part worth keeping.</p>
+<h3 id="7-1-Four-kinds-of-score-and-which-one-to-believe"><a href="#7-1-Four-kinds-of-score-and-which-one-to-believe" class="headerlink" title="7.1 Four kinds of score, and which one to believe"></a>7.1 Four kinds of score, and which one to believe</h3><table>
+<thead>
+<tr>
+<th>Score</th>
+<th>What it is</th>
+<th>Noise</th>
+<th>What it is good for</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Validation subset</td>
+<td>200 fixed validation sequences inside the training script</td>
+<td>sits about 0.017 above the full set</td>
+<td>relative comparison only</td>
+</tr>
+<tr>
+<td>Hold-out</td>
+<td>373 validation sequences never touched by the fine-tune, reported in the validation mix and in a leaderboard-matched mix of the four tick units (15 &#x2F; 14 &#x2F; 30 &#x2F; 41 %)</td>
+<td>standard error about 0.0006 on a package difference, plus ±0.0004 between fine-tune seeds and ±0.0008 between pretraining seeds</td>
+<td>pretraining changes; it mis-ranks fine-tuning changes because it comes from the same set the fine-tune fits (batch 16: +0.0009 hold-out, −0.0003 public)</td>
+</tr>
+<tr>
+<td>5-fold gate</td>
+<td>every candidate fine-tune run five times with one fold of the 1,873 validation sequences left out, each sequence scored by the model that did not see it</td>
+<td>standard error 0.0001 to 0.0004</td>
+<td>the selection score since 10-19; its sign matched the board on every calibration pair, and the public gain is about one third of the gate gain for label-side changes and about zero for replayed training data</td>
+</tr>
+<tr>
+<td>Public board</td>
+<td>5 uploads per UTC day</td>
+<td>one change per slot</td>
+<td>the final judge; gate gains under +0.0004 have never shown on it</td>
+</tr>
+</tbody></table>
+<p>Two recipes run under these scores. The smoke recipe (a one-layer GRU of width 128 on 2,500 sequences, 1 to 3 minutes) screens dozens of ideas; the full recipe (all 10,607 sequences, seven teachers, then the scored-row fine-tune, about 25 minutes) draws conclusions. Of five positive smoke signals re-checked in the full recipe, one survived. The smoke control lacks a second nonlinear stage, so anything that adds one looks good there.</p>
+<h3 id="7-2-Eleven-method-families"><a href="#7-2-Eleven-method-families" class="headerlink" title="7.2 Eleven method families"></a>7.2 Eleven method families</h3><table>
+<thead>
+<tr>
+<th>Family</th>
+<th>What it changes</th>
+<th>Best result</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Label engineering</td>
+<td>the target the model is trained towards: mask fine-tuning, distillation, look-ahead teachers, pure teacher labels, cross-fitted soft labels</td>
+<td>mask fine-tuning +0.007, distillation +0.003, look-ahead teachers +0.0012, pure teacher labels +0.0005, cross-fitted fine-tuning labels +0.0006, all public</td>
+<td>the one family that paid: every step on the board except ensembling, routing and soups was a label change</td>
+</tr>
+<tr>
+<td>Fine-tuning variants</td>
+<td>which parameters move and for how long: LoRA, Prefix, P-Tuning, LwF, DER, head-only, LP-FT, SWA, WiSE-FT, batch 8 to 64, 3 to 8 epochs, learning rates 1e-4 to 8e-4, unscored-row weights 0 to 1</td>
+<td>6 epochs with unscored-row weight 0.1 on soft labels: gate +0.00084</td>
+<td>full-parameter fine-tuning at batch 32, lr 2e-4, 6 epochs; head-only already gets 70 % of the gain; SWA, LwF, LP-FT and distillation inside the fine-tune are worse on the gate</td>
+</tr>
+<tr>
+<td>Ensembling and routing</td>
+<td>how models are combined: averaging, weight soups, member weights, tick-unit routing, regime MoE</td>
+<td>different-structure averaging +0.002, second fusion seed +0.0003, routing +0.0007, soups +0.00014, all public</td>
+<td>works only when the members differ in structure; residual correlations of 0.989 to 0.997 between members leave little to average</td>
+</tr>
+<tr>
+<td>Expanding features</td>
+<td>hand-made features (1,566), MiniRocket (2,397), embeddings, book physics, HiPPO, Engram, in-network column dynamics (1,008), decoded queues</td>
+<td>0 for the GRU; +0.04 for LightGBM, which still ends 0.033 below the GRU</td>
+<td>redundant for a recurrent net; useful only as ensemble diversity (the fusion member’s feature branch)</td>
+</tr>
+<tr>
+<td>Reweighting features</td>
+<td>VSN, SE, ECA, SK, CondConv, FiLM, column attention, zeroing one column block at a time</td>
+<td>about 0</td>
+<td>i0’s volume and price blocks carry the information (−0.039 and −0.021 when zeroed); no block hurts</td>
+</tr>
+<tr>
+<td>Self-supervised and auxiliary losses</td>
+<td>next-row prediction, MAE, CPC, MCR², DINO, representation distillation</td>
+<td>MCR² +0.0001</td>
+<td>none helps; DINO −0.0175</td>
+</tr>
+<tr>
+<td>Regularisation, optimisation, precision</td>
+<td>dropout, weight EMA, Zoneout, GaLore, BAdam, LOMO, Muon, QAT8, LSQ4, random crops</td>
+<td>QAT8 +0.0001</td>
+<td>none helps; optimiser swaps −0.02 to −0.06 at default settings</td>
+</tr>
+<tr>
+<td>Domain adaptation</td>
+<td>DANN, validation sequences in pretraining, density-ratio sampling</td>
+<td>smoke +0.0036, full −0.001</td>
+<td>mask fine-tuning already absorbs the shift</td>
+</tr>
+<tr>
+<td>Inference engineering</td>
+<td>NumPy, ONNX, numba kernels, int8, bfloat16, IEEE half weights, one compiled call per row</td>
+<td>no score change; platform time 41.8 min instead of 54.6 to 62.0</td>
+<td>what lets three members fit the 60-minute limit; two float32 packages were killed at 62 minutes</td>
+</tr>
+<tr>
+<td>Fine-tuning data</td>
+<td>data-size test, replay of training sequences with soft labels, pseudo-scored rows, bid&#x2F;ask mirror, instrument swap, test-time adaptation</td>
+<td>halving the data costs 0.0018; replay gate +0.0004 and public +0.00003; mirror and swap negative on the gate</td>
+<td>only the 1,873 validation sequences count; in-distribution copies that pose a slightly different task cost more than they give</td>
+</tr>
+<tr>
+<td>Validation and selection</td>
+<td>hold-out, paired bootstrap, package score, 5-fold gate, public diagnostics, post-processing of the package output</td>
+<td>the gate’s signs matched the board on all calibration pairs; no fixed transform of the package output improves it</td>
+<td>one change per public slot; fine-tuning changes through the gate, pretraining changes over several seeds</td>
+</tr>
+</tbody></table>
+<h3 id="7-3-Ten-network-types"><a href="#7-3-Ten-network-types" class="headerlink" title="7.3 Ten network types"></a>7.3 Ten network types</h3><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Members</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Nonlinear gated recurrence</td>
+<td>GRU, LSTM, plain RNN, IndRNN, sLSTM, CfC</td>
+<td>GRU and LSTM best; plain RNN −0.003, IndRNN −0.014, CfC −0.019</td>
+</tr>
+<tr>
+<td>Linear recurrence and state-space models</td>
+<td>Mamba, LRU, minGRU, RWKV, RetNet, mLSTM, linear Transformer, Griffin, QRNN, SRU, Gated DeltaNet, TTT, Titans</td>
+<td>all worse, from −0.007 (minGRU) to −0.052 (linear Transformer); the update has no nonlinearity on the previous state, so it cannot switch regimes</td>
+</tr>
+<tr>
+<td>Convolution over time</td>
+<td>TCN, WaveNet, Inception, deformable sampling</td>
+<td>−0.006 to +0.0002 as a student; the one place convolution helped is the teacher’s future-window reader</td>
+</tr>
+<tr>
+<td>Attention over GRU states</td>
+<td>sliding window, MQA, GQA, NSA, Swin, Linformer, PatchTST, DETR memory</td>
+<td>within ±0.0015</td>
+</tr>
+<tr>
+<td>Full Transformer</td>
+<td>Transformer 2×64 student; banded Transformer and iTransformer teachers</td>
+<td>ties the GRU as a student at 2.5× the inference cost; as a teacher it is the most accurate model built (validation subset 0.8396 against 0.8354 for the convolution teacher) and its student is worse</td>
+</tr>
+<tr>
+<td>Event-time designs</td>
+<td>event-clock GRU, hybrid row and event GRU, MOTR slots</td>
+<td>−0.008 to −0.027</td>
+</tr>
+<tr>
+<td>Stacks</td>
+<td>2 to 4 layers, residual, LayerNorm, DyT, gated DyT, SeeDNorm, widths 64 to 768</td>
+<td>1 to 2 layers +0.003; a 4-layer DyT residual stack +0.0007 in the full recipe but 126 µs per row, too slow to submit; wider and longer-trained all worse</td>
+</tr>
+<tr>
+<td>Output heads</td>
+<td>linear, MLP, KAN, MoE, ACON, classification</td>
+<td>+0.0008 to +0.0023 in smoke, a tie in the full recipe</td>
+</tr>
+<tr>
+<td>Input fronts</td>
+<td>feature branch, channel MLP, Mixer, Hire-MLP, VSN, SE</td>
+<td>Hire +0.0013 alone and +0.0005 in the package at +18 to 30 µs per row; not adopted</td>
+</tr>
+<tr>
+<td>Privileged teachers</td>
+<td>shifted GRU, multi-tap, event windows, gated dilated convolution over the next 10 to 100 rows, attention teachers</td>
+<td>the 25-row convolution teacher gives the best GRU student, the 50-row one the best fusion students; the student’s score falls as the teacher sees more</td>
+</tr>
+</tbody></table>
+<h3 id="7-4-The-package-taken-apart"><a href="#7-4-The-package-taken-apart" class="headerlink" title="7.4 The package taken apart"></a>7.4 The package taken apart</h3><p>Seventeen blocks were changed one at a time. The ones where the evidence says the choice matters:</p>
+<ul>
+<li><strong>Loss</strong>: weighted MSE with weight |clip(y)| is +0.017 over plain MSE. Its optimum is the maximiser of the weighted Pearson.</li>
+<li><strong>Recurrent core</strong>: a nonlinear gated unit. Every linear recurrence lost.</li>
+<li><strong>Depth</strong>: two layers (+0.003 over one). Beyond two, only residual paths with a bounded normalisation train, and they do not fit the time limit.</li>
+<li><strong>Pretraining labels</strong>: a 100 % teacher average, six causal teachers plus one future-window convolution teacher at six times their weight. The raw target only adds noise the student cannot explain.</li>
+<li><strong>Fine-tuning targets</strong>: 0.2 times the true value plus 0.8 times a cross-fitted look-ahead label. The one clear negative was a 100-row teacher’s label (−0.0003).</li>
+<li><strong>Fine-tuning procedure</strong>: all parameters, batch 32, lr 2e-4, 6 epochs, unscored-row weight 0.1. The scored rows are about three quarters of mask fine-tuning’s +0.007, new market data the rest.</li>
+<li><strong>Ensemble</strong>: members of different structures. All members share 99 % of their errors.</li>
+<li><strong>Inference</strong>: the kernels are bound by weight bandwidth (4.3 MB of float32 weights per row, more than a core’s L2 cache), so halving the bytes with IEEE half weights was the one speed lever that worked. Arithmetic tricks that win with a hot cache lose when the weights stream.</li>
+</ul>
+<p>Neutral after fine-tuning: the head, the input front for a single model, memory length (the model uses about the last 500 rows, and wiping older memory costs nothing), capacity beyond 2×256, soups (+0.00014), replay (+0.00003). One block leaks: any normalisation across time inside a chunk lets row t see later rows (a fake 0.741).</p>
+<h3 id="7-5-Why-nothing-inside-the-network-helps"><a href="#7-5-Why-nothing-inside-the-network-helps" class="headerlink" title="7.5 Why nothing inside the network helps"></a>7.5 Why nothing inside the network helps</h3><ul>
+<li>A model run backwards over the sequence scores 0.99. The target is a function of the future price path, and a causal model can only learn its expectation given the past.</li>
+<li>The bulk of the error is runs of same-direction errors. A stretch of hundreds of rows waits for the same price move; if the model guesses it wrong, the whole stretch is wrong. Correcting each sequence’s level with the true targets would be worth +0.029, level and scale +0.042. The error of a 50-row stretch correlates 0.72 with the previous stretch’s.</li>
+<li>Nothing visible in advance predicts those runs: i1’s moves, the clock columns and i0’s own moves all correlate at 0.03 or less with the next stretch’s error. Online correction with look-ahead teachers as delayed labels gains exactly 0 (the fitted correction strength is 0 every time). A +0.060 reported along the way turned out to be an oracle that peeked at the future and was retracted.</li>
+<li>The architectures’ advantages are real but solve problems this task does not have: very long context, parallel training, exact recall, irregular sampling, spatial structure between columns. What the task rewards is short nonlinear state-switching memory, clean labels and specialisation to the scored rows. The few architecture changes that helped all fit that: a second nonlinear stage, and depth made trainable by residual + DyT.</li>
+</ul>
+<h3 id="7-6-The-ledger"><a href="#7-6-The-ledger" class="headerlink" title="7.6 The ledger"></a>7.6 The ledger</h3><p>36 uploads, 34 scored, 2 killed by the time limit, 19 new bests. Total +0.01667 from 0.647872 to 0.664539. Of that, about +0.0125 came from the labels the models are trained on and about +0.0040 from combining models. Nothing else moved the board.</p>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Lever</th>
+<th align="right">Public gain</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>09-29</td>
+<td>mask fine-tuning on the validation set’s scored rows</td>
+<td align="right">+0.00715</td>
+</tr>
+<tr>
+<td>09-29</td>
+<td>a second member of another structure</td>
+<td align="right">+0.00167</td>
+</tr>
+<tr>
+<td>09-29</td>
+<td>per-unit specialists routed by the tick unit</td>
+<td align="right">+0.00067</td>
+</tr>
+<tr>
+<td>10-14</td>
+<td>distilled students (6 teachers, distill 0.8)</td>
+<td align="right">+0.00236</td>
+</tr>
+<tr>
+<td>10-15</td>
+<td>look-ahead teacher la50 and its second and third students</td>
+<td align="right">+0.00132</td>
+</tr>
+<tr>
+<td>10-16</td>
+<td>GRU 2×256 and the second fusion seed</td>
+<td align="right">+0.00037</td>
+</tr>
+<tr>
+<td>10-17</td>
+<td>convolution future-window teacher instead of la50</td>
+<td align="right">+0.00011</td>
+</tr>
+<tr>
+<td>10-18</td>
+<td>pure teacher labels (distill 1.0)</td>
+<td align="right">+0.00053</td>
+</tr>
+<tr>
+<td>10-18</td>
+<td>fusion re-trained with the conv teacher, GRU at batch 32</td>
+<td align="right">+0.00044</td>
+</tr>
+<tr>
+<td>10-18</td>
+<td>second fusion seed, 25-row teacher for the GRU</td>
+<td align="right">+0.00059</td>
+</tr>
+<tr>
+<td>10-19</td>
+<td>cross-fitted soft labels for the fusions (a &#x3D; 0.8) and the GRU (a &#x3D; 0.5), soups</td>
+<td align="right">+0.00070</td>
+</tr>
+<tr>
+<td>10-20</td>
+<td>25-row labels for the fusions, GRU labels a &#x3D; 0.8, 6 epochs, unscored weight 0.1</td>
+<td align="right">+0.00054</td>
+</tr>
+<tr>
+<td>10-20</td>
+<td>replay of in-regime training sequences</td>
+<td align="right">+0.00003</td>
+</tr>
+<tr>
+<td>10-22</td>
+<td>6-way GRU soup, then recipe soups</td>
+<td align="right">+0.00019</td>
+</tr>
+</tbody></table>
+<p>Public tests that lost: batch 16 (−0.0005), pure teacher labels a &#x3D; 1.0 for both members (−0.00027, the first gate gain that transferred with the wrong sign), labels from the package’s own out-of-fold predictions (−0.00057, a leak the nested check had already flagged), 6-way fusion soups (−0.00004), stacked per-unit labels (−0.00013).</p>
+<h3 id="7-7-Lessons-about-method"><a href="#7-7-Lessons-about-method" class="headerlink" title="7.7 Lessons about method"></a>7.7 Lessons about method</h3><ol>
+<li>A smoke signal is a reason to run the full recipe, never a conclusion.</li>
+<li>A hold-out drawn from the set the fine-tune fits rewards fitting it. Cross-fit over all sequences instead.</li>
+<li>Divide a gate gain by three to get the expected public gain for a label change; expect nothing for data from another regime.</li>
+<li>Labels made from a model’s own out-of-fold prediction inflate the gate. Run the nested check before trusting them.</li>
+<li>Gate gains under +0.0004 do not show on the board. Do not spend a slot on them.</li>
+<li>One change per public slot, or the result cannot be attributed.</li>
+<li>The cost: 71 pod queues, 47 local queues and 633 run directories bought +0.0028 on the board between 10-17 and 10-20.</li>
+</ol>
 
     </div>
 
@@ -323,8 +609,8 @@
 
     <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/quant/" rel="tag"># quant</a>
               <a href="/tags/competition/" rel="tag"># competition</a>
+              <a href="/tags/quant/" rel="tag"># quant</a>
               <a href="/tags/deep-learning/" rel="tag"># deep learning</a>
           </div>
 

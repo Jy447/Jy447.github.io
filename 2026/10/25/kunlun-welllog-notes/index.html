@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"jy447.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="A working log from the well-log problem of the PetroChina algorithm challenge (中国石油算法挑战赛, preliminary round on the Kunlun platform), written on 2026-10-25 while the round is still open. It closes on 2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kunlun well-log notes, reservoir parameters whose labels are an interpreter&#39;s formulas, law snapping, and where the points are lost">
+<meta property="og:url" content="https://jy447.github.io/2026/10/25/kunlun-welllog-notes/index.html">
+<meta property="og:site_name" content="sunArise">
+<meta property="og:description" content="A working log from the well-log problem of the PetroChina algorithm challenge (中国石油算法挑战赛, preliminary round on the Kunlun platform), written on 2026-10-25 while the round is still open. It closes on 2">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-10-25T10:15:00.000Z">
+<meta property="article:modified_time" content="2026-10-25T10:15:00.000Z">
+<meta property="article:author" content="sunArise">
+<meta property="article:tag" content="competition">
+<meta property="article:tag" content="machine learning">
+<meta property="article:tag" content="petrophysics">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://jy447.github.io/2026/10/25/kunlun-welllog-notes/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://jy447.github.io/2026/10/25/kunlun-welllog-notes/","path":"2026/10/25/kunlun-welllog-notes/","title":"Kunlun well-log notes, reservoir parameters whose labels are an interpreter's formulas, law snapping, and where the points are lost"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Kunlun well-log notes, reservoir parameters whose labels are an interpreter's formulas, law snapping, and where the points are lost | sunArise</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">sunArise</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">记录与思考</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-The-task"><span class="nav-number">1.</span> <span class="nav-text">1. The task</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-What-the-labels-turned-out-to-be"><span class="nav-number">2.</span> <span class="nav-text">2. What the labels turned out to be</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-The-model-piece-by-piece"><span class="nav-number">3.</span> <span class="nav-text">3. The model, piece by piece</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-Score-history"><span class="nav-number">4.</span> <span class="nav-text">4. Score history</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-What-worked-in-order-of-board-value"><span class="nav-number">5.</span> <span class="nav-text">5. What worked, in order of board value</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-Where-the-points-are-lost"><span class="nav-number">6.</span> <span class="nav-text">6. Where the points are lost</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-What-did-not-work"><span class="nav-number">7.</span> <span class="nav-text">7. What did not work</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-Lessons"><span class="nav-number">8.</span> <span class="nav-text">8. Lessons</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-What-comes-next"><span class="nav-number">9.</span> <span class="nav-text">9. What comes next</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">sunArise</p>
+  <div class="site-description" itemprop="description">quant - CS</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jy447.github.io/2026/10/25/kunlun-welllog-notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="sunArise">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="sunArise">
+      <meta itemprop="description" content="quant - CS">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Kunlun well-log notes, reservoir parameters whose labels are an interpreter&#39;s formulas, law snapping, and where the points are lost | sunArise">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kunlun well-log notes, reservoir parameters whose labels are an interpreter's formulas, law snapping, and where the points are lost
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-10-25 18:15:00" itemprop="dateCreated datePublished" datetime="2026-10-25T18:15:00+08:00">2026-10-25</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>A working log from the well-log problem of the PetroChina algorithm challenge (中国石油算法挑战赛, preliminary round on the Kunlun platform), written on 2026-10-25 while the round is still open. It closes on 2026-10-30, and advancement uses a hidden board scored after the close. The post describes the task, what the labels turned out to be, the model, the measurements and the dead ends, not the package code. All numbers are as of the writing date.</p>
+<p>The round has four problems: pump anomaly warning, fracturing oil-gain prediction, well-log reservoir parameters and reservoir connectivity. On the pump and fracturing boards the tenth place sits at 100.0 and 98.02, scores no forecast produces, so those two got the remaining effort and the well-log board, the one with an ordinary spread (first place 84.38, tenth about 84.1, fiftieth 83.53), got most of it. Our package stands at 83.479, rank 62, up from the team’s 82.16 baseline of 09-14.</p>
+<h2 id="1-The-task"><a href="#1-The-task" class="headerlink" title="1. The task"></a>1. The task</h2><ul>
+<li>80 training wells with 730,268 depth points and 10 test wells with 95,948 points, at a 0.1 m step, one text file per well.</li>
+<li>Inputs per depth point: depth, gamma ray (GR), photoelectric factor (PE), spontaneous potential (SP), caliper (CAL), sonic travel time (AC), bulk density (DEN), neutron (CNL), two resistivities (RXO shallow, RT deep), deviation and azimuth, bit size, casing.</li>
+<li>Targets: porosity POR in percent, permeability PERM in mD, water saturation SW in percent. Non-reservoir rows carry the defaults 0.1 &#x2F; 0.01 &#x2F; 99.9, each target with its own default mask, so each target is a gate decision (default or continuous) and a value decision. Continuous rows are 32 % (POR), 31 % (PERM) and 28 % (SW) of the training rows.</li>
+<li>The metric is tolerance-based and discontinuous:</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">POR point  = max(0, 1 - |p - y| / (0.08 * |y|))</span><br><span class="line">PERM point = max(0, 1 - |log10(p / y)|)</span><br><span class="line">SW point   = max(0, 1 - |p - y| / (0.05 * |y|))</span><br><span class="line">score      = 100 * (0.30 * mean POR point + 0.35 * mean PERM point + 0.35 * mean SW point)</span><br></pre></td></tr></table></figure>
+
+<p>A default row scores a full point only when the prediction is the default too. Outside the tolerance, extra regression accuracy earns nothing.</p>
+<ul>
+<li>The public A-board scores 5 of the 10 test wells, the hidden B-board all 10. Per-well out-of-fold scores have a standard deviation of 4.6, so the A-board carries about 2 points of standard error. Five submissions per problem per China date, and a package must reproduce its result from the submitted code or the team is disqualified.</li>
+</ul>
+<h2 id="2-What-the-labels-turned-out-to-be"><a href="#2-What-the-labels-turned-out-to-be" class="headerlink" title="2. What the labels turned out to be"></a>2. What the labels turned out to be</h2><p>The labels are not a smooth function of the logs. They are an interpreter’s discrete formulas, chosen per sub-layer.</p>
+<table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Structure</th>
+<th>Numbers</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>POR</td>
+<td>11 linear laws of one curve, chosen per sub-layer: 5 density laws POR &#x3D; b + s · DEN and 6 sonic laws POR &#x3D; b + s · AC</td>
+<td>for example POR &#x3D; 136.5 − 50.0 DEN, POR &#x3D; 118.449 − 43.7532 DEN, POR &#x3D; 0.2253 AC − 37.91; 53 % of continuous rows fit exactly one law within 0.25 porosity units, 29 % fit two or more, 18 % none</td>
+</tr>
+<tr>
+<td>PERM</td>
+<td>7 laws log10 PERM &#x3D; a + s · POR, chosen per row</td>
+<td>for example log10 PERM &#x3D; 0.1355 POR − 2.183; the same-law stretch is one row at the median, so the law choice is noisy</td>
+</tr>
+<tr>
+<td>SW</td>
+<td>Archie with n &#x3D; 2 and m &#x3D; 2 (some m &#x3D; 1.86): log10 SW &#x3D; c − 0.5 log10 RT − log10 POR, using the label POR and the raw RT</td>
+<td>the constant c (the water resistivity) changes about 62 times per well in an erratic sequence; no statistic of the logs computes it</td>
+</tr>
+</tbody></table>
+<p>Other measurements on the labels:</p>
+<ul>
+<li>5,089 reservoir layers (runs of continuous POR), median 26 rows. The porosity family (density or sonic) is constant inside a layer (purity 0.99) and switches between consecutive layers 12 % of the time; sonic-law layers are the shallow, high-porosity, low-density, low-GR ones.</li>
+<li>Inside a layer the law switches in contiguous depth sub-intervals, but the switch points sit on no curve inflection and the laws overlap in curve range, so no piecewise function of DEN or AC reproduces a layer.</li>
+<li>The gate is a reservoir flag drawn per zone, not a cutoff on porosity: continuous POR labels go down to 0, and the would-be law porosity of default rows beside a zone has the same distribution as the zone’s edge rows. Gate misses are whole thin layers (median 15 rows, 66 % below 10 porosity units, high resistivity), not edges.</li>
+<li>The SW labels use the raw RT: inside a continuous run the Archie constant computed with the raw RT is flat (median deviation 0.004 in log10), and every smoothed RT or RXO fits worse.</li>
+<li>SW constant jumps and POR-law switches share boundaries part of the time: the probability of a POR-law switch is 0.40 at an SW jump against 0.057 where SW is calm. The SW constant does not transfer between wells by absolute depth.</li>
+<li>Whole-well fits looked poor only because the constants change by zone: within 1 to 10 m windows POR is linear in the logs with R² 0.991 to 0.998, and SW is Archie with slope −0.495 on log RT.</li>
+</ul>
+<h2 id="3-The-model-piece-by-piece"><a href="#3-The-model-piece-by-piece" class="headerlink" title="3. The model, piece by piece"></a>3. The model, piece by piece</h2><p>The package is one directory with the same five scripts for each well-fold split: train, calibrate, predict, validate, make the code zip. Two splits of the 80 wells into 5 folds are trained and averaged (10 fold directories).</p>
+<table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>What it is</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Features</td>
+<td>425 label-free features: raw curves and quality flags, petrophysical proxies (density, sonic and neutron porosity, Archie-form saturation, porosity-permeability relations), apparent water resistivity Rwa &#x3D; RT × (density porosity)² with rolling 5 &#x2F; 20 &#x2F; 50 % quantiles over 10 to 500 m, formation context (medians and quantiles of GR, SP, DEN, AC, CNL, log RT over 30 &#x2F; 100 &#x2F; 300 m). The SW models add 61 features from a nested cross-fitted porosity (486 in total)</td>
+<td>the Rwa quantile features lifted SW regression on continuous rows from 0.174 to 0.180 and are the top feature in every fold; exact porosity inside the SW features matters (SW 0.194 with the predicted porosity, 0.230 with the label porosity)</td>
+</tr>
+<tr>
+<td>Gates</td>
+<td>per target, default against continuous: LightGBM, CatBoost and a 63-leaf LightGBM, probabilities median-smoothed over 5 rows, mixed, cut at calibrated thresholds 0.725 &#x2F; 0.6 &#x2F; 0.9</td>
+<td>the SW threshold is high because the SW value is unreliable; gate errors are whole thin layers and no post-processing fixes them</td>
+</tr>
+<tr>
+<td>POR regression</td>
+<td>LightGBM L1, CatBoost MAE and a big LightGBM on the residual POR − por_law (the density law, the sonic law when DEN is missing)</td>
+<td>the L1 loss is what makes the trees good here (continuous-row score 0.347 against 0.280 for L2); the residual target added +0.012</td>
+</tr>
+<tr>
+<td>POR law routers</td>
+<td>12-class routers (none plus 11 laws), 5 groups × 3 seeds averaged, probabilities averaged over a 3-row depth window, the row always snapped to the most probable law</td>
+<td>snapping lifted continuous-row POR from 0.356 to 0.470 at once; each group is a different answer to “which law is the label when two laws fit”: the first in the list, the closest, all of them weighted by score, the whole candidate set (a partial-label loss), the one with the best expected score; they add +0.032, +0.016, +0.022, +0.018 in sequence</td>
+</tr>
+<tr>
+<td>PERM</td>
+<td>log10 regression with the same three members, 8-class routers, snapped to the law value at the snapped POR when the law probability exceeds 0.7</td>
+<td>PERM laws are per row, so the regression carries most of the score (0.811 on continuous rows)</td>
+</tr>
+<tr>
+<td>SW</td>
+<td>gate plus regression on the 486 features, no snapping</td>
+<td>a classifier picks the right SW law on only 21 % of exact rows, and snapping lowers the score even with the label porosity</td>
+</tr>
+<tr>
+<td>Calibration</td>
+<td>blend weights, gate mix, thresholds, scales, snap thresholds and law window chosen on the out-of-fold predictions with the official metric; a leave-one-fold-out “cross-fitted OOF” is reported</td>
+<td>differences under 0.05 are calibration noise</td>
+</tr>
+<tr>
+<td>Checks</td>
+<td>result format check, 5 unit tests, and a clean-room rerun of every package with an identical SHA256</td>
+<td>the rules disqualify code that does not reproduce the result</td>
+</tr>
+</tbody></table>
+<h2 id="4-Score-history"><a href="#4-Score-history" class="headerlink" title="4. Score history"></a>4. Score history</h2><table>
+<thead>
+<tr>
+<th>Package</th>
+<th align="right">Cross-fitted OOF</th>
+<th align="right">A-board</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>team baseline (09-14)</td>
+<td align="right"></td>
+<td align="right">82.16</td>
+<td>the organisers’ pipeline with the team’s code</td>
+</tr>
+<tr>
+<td>rwa (10-19)</td>
+<td align="right">80.57</td>
+<td align="right"></td>
+<td>apparent-water-resistivity features</td>
+</tr>
+<tr>
+<td>zone (10-19)</td>
+<td align="right">80.84</td>
+<td align="right"></td>
+<td>POR residual on the density law, nested stage-1 porosity for SW, context features</td>
+</tr>
+<tr>
+<td>zone2 (10-19)</td>
+<td align="right">81.74</td>
+<td align="right">83.34</td>
+<td>law snapping (+0.73 on the board)</td>
+</tr>
+<tr>
+<td>laws3 &#x2F; laws7 (10-20)</td>
+<td align="right">81.79 &#x2F; 81.86</td>
+<td align="right">83.391 &#x2F; 83.405</td>
+<td>CatBoost routers, 3 seeds, CatBoost gates, 3-row smoothing</td>
+</tr>
+<tr>
+<td>laws13 (10-22)</td>
+<td align="right">81.92</td>
+<td align="right">83.415</td>
+<td>closest-law and soft score-share router targets</td>
+</tr>
+<tr>
+<td>two-split (10-22)</td>
+<td align="right">82.00</td>
+<td align="right">83.473</td>
+<td>second well-fold split averaged</td>
+</tr>
+<tr>
+<td>two14 (10-23)</td>
+<td align="right">82.02</td>
+<td align="right">83.477</td>
+<td>candidate-set routers</td>
+</tr>
+<tr>
+<td>two15 (10-23)</td>
+<td align="right">82.06</td>
+<td align="right">83.479</td>
+<td>reward-maximisation routers; team best</td>
+</tr>
+<tr>
+<td>knob probes (10-25)</td>
+<td align="right"></td>
+<td align="right">83.353 to 83.418</td>
+<td>POR 0.65 &#x2F; SW 0.95 thresholds, SW gate 0.97, POR scale × 1.01, PERM gate 0.50, PERM snap 0.60: none helps</td>
+</tr>
+</tbody></table>
+<p>The gap between the OOF (82.06) and the A-board (83.48) says the five public wells are easier than the average training well, and a 0.1 difference between packages is within the calibration noise.</p>
+<h2 id="5-What-worked-in-order-of-board-value"><a href="#5-What-worked-in-order-of-board-value" class="headerlink" title="5. What worked, in order of board value"></a>5. What worked, in order of board value</h2><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Mechanism</th>
+<th align="right">OOF</th>
+<th align="right">Board</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>law snapping</td>
+<td>the labels are the interpreter’s formulas; a router picks the law and the row takes the exact value</td>
+<td align="right">+0.9</td>
+<td align="right">+0.73</td>
+</tr>
+<tr>
+<td>physics-shaped targets and features (POR residual on the density law, Rwa quantiles, formation context)</td>
+<td>the pre-law pipeline</td>
+<td align="right">+0.41</td>
+<td align="right">part of zone2’s +1.2</td>
+</tr>
+<tr>
+<td>CatBoost routers, 3 seeds, 3-row smoothing, CatBoost gates</td>
+<td>routing accuracy 0.457 to 0.469 on continuous rows per step; seeds saturate at 3</td>
+<td align="right">+0.12</td>
+<td align="right">+0.065</td>
+</tr>
+<tr>
+<td>second well-fold split averaged</td>
+<td>a resampling ensemble; the learning curve still rises at 64 wells</td>
+<td align="right">+0.079</td>
+<td align="right">+0.058</td>
+</tr>
+<tr>
+<td>router target definition (closest, soft, candidate set, reward)</td>
+<td>label noise of the first-law rule on the 29 % of rows that fit several laws</td>
+<td align="right">+0.090</td>
+<td align="right">+0.010 measured for the first two groups</td>
+</tr>
+</tbody></table>
+<p>A third split lost 0.008 OOF and was not submitted, so part of the second split’s gain was that split’s luck.</p>
+<h2 id="6-Where-the-points-are-lost"><a href="#6-Where-the-points-are-lost" class="headerlink" title="6. Where the points are lost"></a>6. Where the points are lost</h2><p>Loss budget of a mid-campaign package on the cross-fitted OOF (730,268 rows):</p>
+<table>
+<thead>
+<tr>
+<th>Pool</th>
+<th align="right">Points lost</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SW: continuous rows predicted default</td>
+<td align="right">3.84</td>
+</tr>
+<tr>
+<td>SW: value on rows both call continuous (score 0.211 there)</td>
+<td align="right">4.81</td>
+</tr>
+<tr>
+<td>POR: value on rows both call continuous (score 0.514; the best-law oracle scores 0.829)</td>
+<td align="right">3.90</td>
+</tr>
+<tr>
+<td>POR: continuous rows predicted default</td>
+<td align="right">1.76</td>
+</tr>
+<tr>
+<td>PERM: missed rows &#x2F; value</td>
+<td align="right">1.58 &#x2F; 1.79</td>
+</tr>
+</tbody></table>
+<p>SW loses about 8.9 weighted points across its gate and value pools. With the true water-resistivity constant and the predicted porosity SW would score 0.394 on the both-continuous rows instead of 0.211, and 0.861 with the true porosity as well. POR routing still has about 3.3 points of oracle headroom. PERM is comparatively strong.</p>
+<h2 id="7-What-did-not-work"><a href="#7-What-did-not-work" class="headerlink" title="7. What did not work"></a>7. What did not work</h2><ul>
+<li><strong>Formula targets for SW</strong>: predicting the zone constant with the trees and rebuilding SW (0.151 against 0.174 direct); the constant’s spread across zones (0.227 log units) exceeds SW’s own (0.103). Snapping SW to a law: 21 to 22 % law accuracy, worse even with the label porosity. Even with the true water&#x2F;oil labels and the label porosity, the law that best separates water from oil rows within ±15 m identifies the zone’s constant on only 44 % of rows.</li>
+<li><strong>SW sequence models on the 10-25 pass</strong>: Archie-constant smoothing in SW space, latent-law Viterbi decoding, quantile residuals, censored constant regression, direct optimisation of the official SW score, a 10-fold data-size probe (+0.0013). All negative or inside noise.</li>
+<li><strong>Law choice variants</strong>: one law per layer (−0.009), order-constrained Viterbi over depth (+0.002 as smoothing, worse when enforcing a law order), consensus votes per layer, analog-well transfer by depth shift (28 % right against 45 % for the classifier), a bigger law classifier (+0.0026 at twice the cost), a 13-class model replacing gate plus router (a tie), a GPU dilated-convolution + BiGRU law network (0.42 against 0.47 for LightGBM).</li>
+<li><strong>Gates</strong>: per-row expected-score gate (−0.03), hysteresis and length rules (+0.01), boundary-position features (0), predictable per-well thresholds.</li>
+<li><strong>Regressors and losses</strong>: L2 and linear-leaf trees (worse than L1), hedging SW and PERM between the default and the regression (−0.04), a mode-seeking Welsch refinement of the L1 member (+0.02, not worth shipping alone), a multi-task MLP on the features (worse alone, +0.02 blended), a dilated CNN on the engineered features (78.67 alone, +0.05 blended).</li>
+<li><strong>Every neural plug-in from the paper notes</strong>: SE, SK, FiLM, MoE, ALiBi, external memory, HiPPO, query pooling, DyT, engram, chunking, gradient reversal, retrieval priors, quantisation. None beats the tree router (0.33 against 0.39 routing accuracy for the best of them).</li>
+<li><strong>Depth-context stackers</strong> (LightGBM and neural) on top of the out-of-fold predictions.</li>
+<li><strong>More data in one model</strong>: an all-80-wells model set at weight 0.5 (−0.07 on the board; it cannot be calibrated), a third well-fold split (−0.008 OOF), ten folds instead of five (+0.0013).</li>
+<li><strong>Global knobs on the board</strong> (10-25): five probes, every one between −0.075 and +0.0026. Individually favourable thresholds do not compose: applying POR 0.65 and SW 0.95 together to the stronger package lost 0.075. The response surface is non-additive, and knob stacking is not a route to +0.6.</li>
+</ul>
+<h2 id="8-Lessons"><a href="#8-Lessons" class="headerlink" title="8. Lessons"></a>8. Lessons</h2><ol>
+<li>Read the label generator before modelling. Whole-well regressions looked like a noisy physical relation; 1 to 10 m windows showed exact linear laws, and a greedy search for sharp peaks in the label residuals over slope grids recovered them. That one finding is worth more than everything else combined.</li>
+<li>A tolerance metric rewards exact identification, not accuracy. Once a prediction is outside 8 % or 5 %, it earns zero, so a router that lands on the right law beats a regressor that is 6 % off everywhere.</li>
+<li>When the label is ambiguous (29 % of rows fit several laws), the definition of the router’s target is a lever. Five definitions of “the right law” are complementary and add up; more seeds of one definition saturate at three.</li>
+<li>The A-board is five wells with about 2 points of standard error, and a 0.1 OOF gain transfers at a fraction. Small levers need a cross-fitted OOF over all 80 wells before a slot is spent.</li>
+<li>Reproduce before submitting. The rules disqualify code that does not reproduce the result, and the fracturing problem showed that unpinned library versions change tree models by 1 to 10 % per well. Every well-log package passes a clean-room rerun with an identical SHA256.</li>
+<li>Machine notes that cost hours: a stopped cloud pod can resume on another host with an empty container disk, so weights and zips go to the network volume; three concurrent CatBoost GPU jobs stall a 16 GB card; kill processes only by PID or exact script name.</li>
+</ol>
+<h2 id="9-What-comes-next"><a href="#9-What-comes-next" class="headerlink" title="9. What comes next"></a>9. What comes next</h2><ol>
+<li>A joint latent-state decoder: the POR law, the PERM law and the SW constant decoded together, using the shared boundaries measured in section 2 (a POR-law switch is seven times more likely at an SW jump). Continue only if it reaches +0.20 OOF or +0.05 on continuous-row POR.</li>
+<li>SW state reconstruction with a different observation model: infer the water&#x2F;oil boundary from local evidence, solve the Archie constant from the water side, allow abrupt changes, keep the direct regression as a low-confidence fallback. This is the only model-side direction with a credible route to more than half a point.</li>
+<li>A test-prior router as a low-weight sixth group (+0.0058 total OOF, measured), worth one package probe but not a new pipeline.</li>
+<li>Not planned: larger sequence models, more fold splits, more individual POR laws, generic features already among the 425, and per-row smoothing over the same probabilities. All of these have produced gains below +0.05 OOF and transferred at a fraction of that.</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/competition/" rel="tag"># competition</a>
+              <a href="/tags/machine-learning/" rel="tag"># machine learning</a>
+              <a href="/tags/petrophysics/" rel="tag"># petrophysics</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/10/25/OSINT-Method/" rel="prev" title="OSINT Method">
+                  <i class="fa fa-angle-left"></i> OSINT Method
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">sunArise</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
