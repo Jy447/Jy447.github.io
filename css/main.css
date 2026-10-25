@@ -1221,7 +1221,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #799f2d;
+  background: #59d5d4;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -2612,25 +2612,23 @@ hr {
 }
 .post-body table {
   color: #0a2540 !important;
-  background: transparent !important;
+  background: #fff !important;
 }
 .post-body thead th {
-  background: rgba(14,92,138,0.12) !important;
+  background: #fff !important;
   color: #0a2540 !important;
 }
-.post-body tbody tr:nth-of-type(odd) {
-  background: rgba(14,92,138,0.06) !important;
-}
-.post-body tbody tr:nth-of-type(even) {
-  background: transparent !important;
-}
+.post-body tbody tr:nth-of-type(odd),
+.post-body tbody tr:nth-of-type(even),
 .post-body tbody tr:hover {
-  background: rgba(14,92,138,0.14) !important;
+  background: #fff !important;
 }
 .post-body th,
 .post-body td {
+  background: #fff !important;
   border-color: rgba(14,92,138,0.3) !important;
 }
+.post-body figure.highlight table,
 .post-body figure.highlight tr,
 .post-body figure.highlight td {
   background: transparent !important;
