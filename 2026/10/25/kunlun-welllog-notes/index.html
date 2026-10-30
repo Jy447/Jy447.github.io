@@ -19,15 +19,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"jy447.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="A working log from the well-log problem of the PetroChina algorithm challenge (中国石油算法挑战赛, preliminary round on the Kunlun platform), written on 2026-10-25 while the round is still open. It closes on 2">
+    <meta name="description" content="A working log from the well-log problem of the PetroChina algorithm challenge (中国石油算法挑战赛, preliminary round on the Kunlun platform). First written on 2026-10-25 while the round was open; updated on 20">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Kunlun well-log notes, reservoir parameters whose labels are an interpreter&#39;s formulas, law snapping, and where the points are lost">
 <meta property="og:url" content="https://jy447.github.io/2026/10/25/kunlun-welllog-notes/index.html">
 <meta property="og:site_name" content="sunArise">
-<meta property="og:description" content="A working log from the well-log problem of the PetroChina algorithm challenge (中国石油算法挑战赛, preliminary round on the Kunlun platform), written on 2026-10-25 while the round is still open. It closes on 2">
+<meta property="og:description" content="A working log from the well-log problem of the PetroChina algorithm challenge (中国石油算法挑战赛, preliminary round on the Kunlun platform). First written on 2026-10-25 while the round was open; updated on 20">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-10-25T10:15:00.000Z">
-<meta property="article:modified_time" content="2026-10-25T10:15:00.000Z">
+<meta property="article:modified_time" content="2026-10-30T17:00:00.000Z">
 <meta property="article:author" content="sunArise">
 <meta property="article:tag" content="competition">
 <meta property="article:tag" content="machine learning">
@@ -124,7 +124,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-The-task"><span class="nav-number">1.</span> <span class="nav-text">1. The task</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-What-the-labels-turned-out-to-be"><span class="nav-number">2.</span> <span class="nav-text">2. What the labels turned out to be</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-The-model-piece-by-piece"><span class="nav-number">3.</span> <span class="nav-text">3. The model, piece by piece</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-Score-history"><span class="nav-number">4.</span> <span class="nav-text">4. Score history</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-What-worked-in-order-of-board-value"><span class="nav-number">5.</span> <span class="nav-text">5. What worked, in order of board value</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-Where-the-points-are-lost"><span class="nav-number">6.</span> <span class="nav-text">6. Where the points are lost</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-What-did-not-work"><span class="nav-number">7.</span> <span class="nav-text">7. What did not work</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-Lessons"><span class="nav-number">8.</span> <span class="nav-text">8. Lessons</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-What-comes-next"><span class="nav-number">9.</span> <span class="nav-text">9. What comes next</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-The-task"><span class="nav-number">1.</span> <span class="nav-text">1. The task</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-What-the-labels-turned-out-to-be"><span class="nav-number">2.</span> <span class="nav-text">2. What the labels turned out to be</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-The-model-piece-by-piece"><span class="nav-number">3.</span> <span class="nav-text">3. The model, piece by piece</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-Score-history"><span class="nav-number">4.</span> <span class="nav-text">4. Score history</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-What-worked-in-order-of-board-value"><span class="nav-number">5.</span> <span class="nav-text">5. What worked, in order of board value</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-Where-the-points-are-lost"><span class="nav-number">6.</span> <span class="nav-text">6. Where the points are lost</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-What-did-not-work"><span class="nav-number">7.</span> <span class="nav-text">7. What did not work</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-Lessons"><span class="nav-number">8.</span> <span class="nav-text">8. Lessons</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-Where-it-ended"><span class="nav-number">9.</span> <span class="nav-text">9. Where it ended</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -137,7 +137,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-count">6</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -200,6 +200,13 @@
 
       <time title="创建时间：2026-10-25 18:15:00" itemprop="dateCreated datePublished" datetime="2026-10-25T18:15:00+08:00">2026-10-25</time>
     </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-10-31 01:00:00" itemprop="dateModified" datetime="2026-10-31T01:00:00+08:00">2026-10-31</time>
+    </span>
 
   
 </div>
@@ -210,8 +217,8 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>A working log from the well-log problem of the PetroChina algorithm challenge (中国石油算法挑战赛, preliminary round on the Kunlun platform), written on 2026-10-25 while the round is still open. It closes on 2026-10-30, and advancement uses a hidden board scored after the close. The post describes the task, what the labels turned out to be, the model, the measurements and the dead ends, not the package code. All numbers are as of the writing date.</p>
-<p>The round has four problems: pump anomaly warning, fracturing oil-gain prediction, well-log reservoir parameters and reservoir connectivity. On the pump and fracturing boards the tenth place sits at 100.0 and 98.02, scores no forecast produces, so those two got the remaining effort and the well-log board, the one with an ordinary spread (first place 84.38, tenth about 84.1, fiftieth 83.53), got most of it. Our package stands at 83.479, rank 62, up from the team’s 82.16 baseline of 09-14.</p>
+    <div class="post-body" itemprop="articleBody"><p>A working log from the well-log problem of the PetroChina algorithm challenge (中国石油算法挑战赛, preliminary round on the Kunlun platform). First written on 2026-10-25 while the round was open; updated on 2026-10-31, after the round closed on 2026-10-30, with the last five days: the gate nets that gave the final score, the study of the water-saturation constant, a sweep of ten sequence-network families, and the final standing. Advancement uses a hidden board scored after the close, which had not been published when this update was written. The post describes the task, what the labels turned out to be, the model, the measurements and the dead ends, not the package code. Numbers are as of 2026-10-31 unless dated.</p>
+<p>The round has four problems: pump anomaly warning, fracturing oil-gain prediction, well-log reservoir parameters and reservoir connectivity. On the pump and fracturing boards the tenth place sits at 100.0 and 98.02, scores no forecast produces, so those two got the remaining effort and the well-log board, the one with an ordinary spread (first place 84.38, tenth about 84.1, fiftieth 83.53), got most of it. The final package stands at 83.619 on the public board, rank 54 of about 1,200 participants, up from the team’s 82.16 baseline of 09-14 (rank 253 on 10-18) and from 83.479 (rank 62) when this post was first written.</p>
 <h2 id="1-The-task"><a href="#1-The-task" class="headerlink" title="1. The task"></a>1. The task</h2><ul>
 <li>80 training wells with 730,268 depth points and 10 test wells with 95,948 points, at a 0.1 m step, one text file per well.</li>
 <li>Inputs per depth point: depth, gamma ray (GR), photoelectric factor (PE), spontaneous potential (SP), caliper (CAL), sonic travel time (AC), bulk density (DEN), neutron (CNL), two resistivities (RXO shallow, RT deep), deviation and azimuth, bit size, casing.</li>
@@ -253,12 +260,15 @@
 <ul>
 <li>5,089 reservoir layers (runs of continuous POR), median 26 rows. The porosity family (density or sonic) is constant inside a layer (purity 0.99) and switches between consecutive layers 12 % of the time; sonic-law layers are the shallow, high-porosity, low-density, low-GR ones.</li>
 <li>Inside a layer the law switches in contiguous depth sub-intervals, but the switch points sit on no curve inflection and the laws overlap in curve range, so no piecewise function of DEN or AC reproduces a layer.</li>
-<li>The gate is a reservoir flag drawn per zone, not a cutoff on porosity: continuous POR labels go down to 0, and the would-be law porosity of default rows beside a zone has the same distribution as the zone’s edge rows. Gate misses are whole thin layers (median 15 rows, 66 % below 10 porosity units, high resistivity), not edges.</li>
+<li>The 18 % of continuous POR rows that fit no law are near misses, not a hidden twelfth law: the nearest law misses by 0.42 porosity units at the median against the 0.25 tolerance, half of those rows sit in runs of 1 to 3 rows, and no single-curve fit is exact on more than 6 % of the longer runs.</li>
+<li>The gate is a reservoir flag drawn per zone, not a cutoff on porosity: continuous POR labels go down to 0, and the would-be law porosity of default rows beside a zone has the same distribution as the zone’s edge rows. Gate misses are whole thin layers (median 15 rows, 66 % below 10 porosity units, high resistivity), not edges. The three gates nest: SW continuous within PERM continuous within POR continuous, and four states cover 99.6 % of the rows.</li>
 <li>The SW labels use the raw RT: inside a continuous run the Archie constant computed with the raw RT is flat (median deviation 0.004 in log10), and every smoothed RT or RXO fits worse.</li>
+<li>The SW constant is a table, not a function (measured 10-27). The water resistivity implied per clean layer peaks at round values, 0.04, 0.05, 0.055, 0.06, 0.07, 0.08, 0.10, 0.12, 0.15, 0.20 ohm m: the 15 most populated 0.01-wide bins hold 60 % of the layers against 16 % for a uniform spread. It follows a formation-water salinity profile with the same shape in every well printed, 0.3 to 2.4 in the shallowest reservoirs, 0.03 to 0.06 in the middle of the column, 0.10 to 0.15 at the bottom, with a spread of 5 to 7 tolerances at equal column position. A well uses about 7 distinct values over 20 clean layers, 60 % of consecutive clean layers keep the value, and the sequence is not monotone in depth. Inside a layer the fixed-exponent Archie form holds for 96 % of the oil rows at the median, but the exponents are not identifiable from one layer (the fitted log RT exponent runs from −0.53 to −0.17 across layers).</li>
 <li>SW constant jumps and POR-law switches share boundaries part of the time: the probability of a POR-law switch is 0.40 at an SW jump against 0.057 where SW is calm. The SW constant does not transfer between wells by absolute depth.</li>
 <li>Whole-well fits looked poor only because the constants change by zone: within 1 to 10 m windows POR is linear in the logs with R² 0.991 to 0.998, and SW is Archie with slope −0.495 on log RT.</li>
+<li>No test well duplicates a training well: zero exact row matches on five curves.</li>
 </ul>
-<h2 id="3-The-model-piece-by-piece"><a href="#3-The-model-piece-by-piece" class="headerlink" title="3. The model, piece by piece"></a>3. The model, piece by piece</h2><p>The package is one directory with the same five scripts for each well-fold split: train, calibrate, predict, validate, make the code zip. Two splits of the 80 wells into 5 folds are trained and averaged (10 fold directories).</p>
+<h2 id="3-The-model-piece-by-piece"><a href="#3-The-model-piece-by-piece" class="headerlink" title="3. The model, piece by piece"></a>3. The model, piece by piece</h2><p>The package is one directory with the same five scripts for each well-fold split: train, calibrate, predict, validate, make the code zip. Two splits of the 80 wells into 5 folds are trained and averaged (10 fold directories). The final package (two15nn, 4.5 GB of code and weights) adds three gate nets per fold directory.</p>
 <table>
 <thead>
 <tr>
@@ -273,9 +283,14 @@
 <td>the Rwa quantile features lifted SW regression on continuous rows from 0.174 to 0.180 and are the top feature in every fold; exact porosity inside the SW features matters (SW 0.194 with the predicted porosity, 0.230 with the label porosity)</td>
 </tr>
 <tr>
-<td>Gates</td>
-<td>per target, default against continuous: LightGBM, CatBoost and a 63-leaf LightGBM, probabilities median-smoothed over 5 rows, mixed, cut at calibrated thresholds 0.725 &#x2F; 0.6 &#x2F; 0.9</td>
-<td>the SW threshold is high because the SW value is unreliable; gate errors are whole thin layers and no post-processing fixes them</td>
+<td>Tree gates</td>
+<td>per target, default against continuous: LightGBM, CatBoost and a 63-leaf LightGBM, probabilities median-smoothed over 5 rows, mixed</td>
+<td>gate errors are whole thin layers and no post-processing fixes them; the SW threshold is high because the SW value is unreliable</td>
+</tr>
+<tr>
+<td>Gate nets (10-26)</td>
+<td>a 4-level 1-D U-Net with dilated residual blocks over 2048-row crops of the whole well; inputs are the 11 raw curves, their per-well median-centred copies, missing flags, the 11 law values, the depth fraction and the 425 tree features; 800 steps with input noise and per-channel scale and shift augmentation; three seeds per fold directory, numpy inference in the package. Its probabilities are mixed into the tree gates at 0.6 &#x2F; 0.6 &#x2F; 0.1 for POR &#x2F; PERM &#x2F; SW, cut at thresholds 0.75 &#x2F; 0.65 &#x2F; 0.9</td>
+<td>the trees see one row and its rolling features, the net sees the whole well and places the default-to-continuous edges differently; the mix is worth +0.13 to +0.14 cross-fitted, every fold positive, and +0.14 on the board. The net overfits the training wells within a few hundred steps, so short training and augmentation are the regularisers: one net matches the trees’ gate AUC (0.9836 on POR), five seeds exceed it (0.9845). Its value and law heads lose to the trees (POR 0.26 against 0.34, SW 0.15 against 0.20 on continuous rows; the law head 0.42 against 0.49 once snapped) and are not used</td>
 </tr>
 <tr>
 <td>POR regression</td>
@@ -299,12 +314,12 @@
 </tr>
 <tr>
 <td>Calibration</td>
-<td>blend weights, gate mix, thresholds, scales, snap thresholds and law window chosen on the out-of-fold predictions with the official metric; a leave-one-fold-out “cross-fitted OOF” is reported</td>
+<td>blend weights, gate mix, net gate mix, thresholds, scales, snap thresholds and law window chosen on the out-of-fold predictions with the official metric; a leave-one-fold-out “cross-fitted OOF” is reported</td>
 <td>differences under 0.05 are calibration noise</td>
 </tr>
 <tr>
 <td>Checks</td>
-<td>result format check, 5 unit tests, and a clean-room rerun of every package with an identical SHA256</td>
+<td>result format check, 5 unit tests, a parity check of the numpy net inference against torch, and a clean-room rerun of every package with an identical SHA256</td>
 <td>the rules disqualify code that does not reproduce the result</td>
 </tr>
 </tbody></table>
@@ -369,16 +384,22 @@
 <td>two15 (10-23)</td>
 <td align="right">82.06</td>
 <td align="right">83.479</td>
-<td>reward-maximisation routers; team best</td>
+<td>reward-maximisation routers</td>
 </tr>
 <tr>
-<td>knob probes (10-25)</td>
+<td>knob probes (10-25, 10-26)</td>
 <td align="right"></td>
 <td align="right">83.353 to 83.418</td>
-<td>POR 0.65 &#x2F; SW 0.95 thresholds, SW gate 0.97, POR scale × 1.01, PERM gate 0.50, PERM snap 0.60: none helps</td>
+<td>POR 0.65 &#x2F; SW 0.95 thresholds together, SW gate 0.97, POR scale × 1.01, PERM gate 0.50, PERM snap 0.60: none helps</td>
+</tr>
+<tr>
+<td>two15nn (10-28)</td>
+<td align="right">82.19</td>
+<td align="right"><strong>83.619</strong></td>
+<td>three U-Net gate nets per fold directory mixed into the gates; +0.13 OOF became +0.14 on the board; rank 54, the final package</td>
 </tr>
 </tbody></table>
-<p>The gap between the OOF (82.06) and the A-board (83.48) says the five public wells are easier than the average training well, and a 0.1 difference between packages is within the calibration noise.</p>
+<p>The gap between the OOF (82.19) and the A-board (83.62) says the five public wells are easier than the average training well. How much of an OOF gain reaches the board depends on the lever: law snapping 0.8, the second split 0.7, the gate nets about 1.0, router re-targeting 0.05 to 0.2, and a 0.1 difference between packages is within the calibration noise.</p>
 <h2 id="5-What-worked-in-order-of-board-value"><a href="#5-What-worked-in-order-of-board-value" class="headerlink" title="5. What worked, in order of board value"></a>5. What worked, in order of board value</h2><table>
 <thead>
 <tr>
@@ -393,6 +414,12 @@
 <td>the labels are the interpreter’s formulas; a router picks the law and the row takes the exact value</td>
 <td align="right">+0.9</td>
 <td align="right">+0.73</td>
+</tr>
+<tr>
+<td>raw-curve U-Net gate nets mixed into the three gates</td>
+<td>a whole-well sequence model places the default-to-continuous edges differently from the row-wise trees; the mix is a diversity gain, not an accuracy gain</td>
+<td align="right">+0.13 to +0.14</td>
+<td align="right">+0.14</td>
 </tr>
 <tr>
 <td>physics-shaped targets and features (POR residual on the density law, Rwa quantiles, formation context)</td>
@@ -449,32 +476,36 @@
 <td align="right">1.58 &#x2F; 1.79</td>
 </tr>
 </tbody></table>
-<p>SW loses about 8.9 weighted points across its gate and value pools. With the true water-resistivity constant and the predicted porosity SW would score 0.394 on the both-continuous rows instead of 0.211, and 0.861 with the true porosity as well. POR routing still has about 3.3 points of oracle headroom. PERM is comparatively strong.</p>
+<p>SW loses about 8.9 weighted points across its gate and value pools. With the true water-resistivity constant and the predicted porosity SW would score 0.394 on the both-continuous rows instead of 0.211, and 0.861 with the true porosity as well. The per-layer SW constant is the single largest unclaimed pool: with the median constant of each predicted reservoir layer known, and the present porosity, the two15 OOF would rise from 82.08 to 85.03. POR routing still has about 3.3 points of oracle headroom. PERM is comparatively strong.</p>
 <h2 id="7-What-did-not-work"><a href="#7-What-did-not-work" class="headerlink" title="7. What did not work"></a>7. What did not work</h2><ul>
 <li><strong>Formula targets for SW</strong>: predicting the zone constant with the trees and rebuilding SW (0.151 against 0.174 direct); the constant’s spread across zones (0.227 log units) exceeds SW’s own (0.103). Snapping SW to a law: 21 to 22 % law accuracy, worse even with the label porosity. Even with the true water&#x2F;oil labels and the label porosity, the law that best separates water from oil rows within ±15 m identifies the zone’s constant on only 44 % of rows.</li>
 <li><strong>SW sequence models on the 10-25 pass</strong>: Archie-constant smoothing in SW space, latent-law Viterbi decoding, quantile residuals, censored constant regression, direct optimisation of the official SW score, a 10-fold data-size probe (+0.0013). All negative or inside noise.</li>
+<li><strong>The SW constant from the labels’ own structure (10-26, 10-27)</strong>: the oil&#x2F;water-contact rule (the largest water-row Archie term within a window bounds the constant from below) holds on the labels, 45 to 55 % of oil rows with the true water rows, but the model’s water rows are too noisy (rebuilt SW 0.09 to 0.15 against 0.21), and as features of a correction model it costs 0.02 to 0.07. Estimators of the per-layer constant: the median of the regression’s own implied constant is within tolerance on 44 % of oil rows; snapping it to the 0.01 grid, LightGBM on layer descriptors, stratigraphic proxies (column fraction, rank), gate-derived bounds and pooling across the zone all stay at or below that, because the error is a per-zone bias (correlation 0.83 between consecutive same-constant layers). The persistence oracle, the previous layer’s true constant, reaches 57 %; the well median 18 %. A net or a tree predicting the constant directly and rebuilding SW with the snapped porosity: 0.157 against 0.211.</li>
 <li><strong>Law choice variants</strong>: one law per layer (−0.009), order-constrained Viterbi over depth (+0.002 as smoothing, worse when enforcing a law order), consensus votes per layer, analog-well transfer by depth shift (28 % right against 45 % for the classifier), a bigger law classifier (+0.0026 at twice the cost), a 13-class model replacing gate plus router (a tie), a GPU dilated-convolution + BiGRU law network (0.42 against 0.47 for LightGBM).</li>
-<li><strong>Gates</strong>: per-row expected-score gate (−0.03), hysteresis and length rules (+0.01), boundary-position features (0), predictable per-well thresholds.</li>
-<li><strong>Regressors and losses</strong>: L2 and linear-leaf trees (worse than L1), hedging SW and PERM between the default and the regression (−0.04), a mode-seeking Welsch refinement of the L1 member (+0.02, not worth shipping alone), a multi-task MLP on the features (worse alone, +0.02 blended), a dilated CNN on the engineered features (78.67 alone, +0.05 blended).</li>
-<li><strong>Every neural plug-in from the paper notes</strong>: SE, SK, FiLM, MoE, ALiBi, external memory, HiPPO, query pooling, DyT, engram, chunking, gradient reversal, retrieval priors, quantisation. None beats the tree router (0.33 against 0.39 routing accuracy for the best of them).</li>
+<li><strong>Gates</strong>: per-row expected-score gate (−0.03), hysteresis and length rules (+0.01), boundary-position features (0), predictable per-well thresholds, nested-gate constraints that force SW within PERM within POR (−0.024 to +0.001: the independent decisions were already optimal).</li>
+<li><strong>Regressors and losses</strong>: L2 and linear-leaf trees (worse than L1), hedging SW and PERM between the default and the regression (−0.04), a mode-seeking Welsch refinement of the L1 member (+0.02, not worth shipping alone), a multi-task MLP on the features (worse alone, +0.02 blended), a dilated CNN on the engineered features (78.67 alone, +0.05 blended), per-well calibration jitter as augmentation for a tree router (noise or −0.008; what helped the nets does not help the trees).</li>
+<li><strong>Every neural plug-in from the paper notes</strong> on a law stacker: SE, SK, FiLM, MoE, ALiBi, external memory, HiPPO, query pooling, DyT, engram, chunking, gradient reversal, retrieval priors, quantisation. None beats the tree router (0.33 against 0.39 routing accuracy for the best of them). Retried after the gate nets worked, with short training and the tree probabilities as inputs or as a residual: 0.44 against 0.49 snapped POR; augmented law heads 0.43. The corrections learned on training wells hurt on held-out wells.</li>
 <li><strong>Depth-context stackers</strong> (LightGBM and neural) on top of the out-of-fold predictions.</li>
+<li><strong>A zoo of ten sequence-network families (10-28)</strong>, one target per run, about 60 members, all bidirectional over the whole well: gated recurrence (GRU, LSTM, IndRNN, sLSTM, CfC), linear recurrence and state-space (Mamba, LRU, minGRU, RWKV, QRNN, SRU, Griffin, RetNet, mLSTM, gated DeltaNet, TTT, Titans, linear attention), convolution (TCN, WaveNet, Inception, deformable, U-Net), attention over GRU states (sliding window, MQA, GQA, NSA, Swin, Linformer, PatchTST, DETR memory), full Transformers (global, banded, iTransformer), event-time designs, stack variants (DyT and other norms, residuals, widths), output heads (MLP, KAN, MoE, ACON, classification), input fronts (channel MLP, Mixer, VSN, SE, ROCKET, MiniRocket) and privileged-information teachers. On the SW value the trees score 0.202 on the continuous rows; the best nets reach 0.17 on fold 0 (a banded Transformer, a GRU with sliding-window attention, a classification head, Griffin) and shrink to within 0.006 of the plain GRU (0.155) on 5 folds, except the classification head (0.170) and a 4-layer DyT stack (0.165). Their SW gates (AUC 0.972 to 0.976) sit under the trees (0.978) and mixing them moves the total by −0.007 to +0.002. Teachers that read the true porosity reach 0.19, their students 0.15: the privilege does not transfer. On a side target, predicting log RT from the other curves, the simplest stacks win (a GRU without the residual connection, 0.0725 decades on 5 folds; TTT 0.0721 at 15 times the inference cost). No zoo member improves the submission.</li>
 <li><strong>More data in one model</strong>: an all-80-wells model set at weight 0.5 (−0.07 on the board; it cannot be calibrated), a third well-fold split (−0.008 OOF), ten folds instead of five (+0.0013).</li>
-<li><strong>Global knobs on the board</strong> (10-25): five probes, every one between −0.075 and +0.0026. Individually favourable thresholds do not compose: applying POR 0.65 and SW 0.95 together to the stronger package lost 0.075. The response surface is non-additive, and knob stacking is not a route to +0.6.</li>
+<li><strong>Global knobs on the board</strong> (10-25, 10-26): five probes, every one between −0.075 and +0.0026. Individually favourable thresholds do not compose: applying POR 0.65 and SW 0.95 together to the stronger package lost 0.075. The response surface is non-additive, and knob stacking is not a route to +0.5.</li>
 </ul>
 <h2 id="8-Lessons"><a href="#8-Lessons" class="headerlink" title="8. Lessons"></a>8. Lessons</h2><ol>
 <li>Read the label generator before modelling. Whole-well regressions looked like a noisy physical relation; 1 to 10 m windows showed exact linear laws, and a greedy search for sharp peaks in the label residuals over slope grids recovered them. That one finding is worth more than everything else combined.</li>
 <li>A tolerance metric rewards exact identification, not accuracy. Once a prediction is outside 8 % or 5 %, it earns zero, so a router that lands on the right law beats a regressor that is 6 % off everywhere.</li>
 <li>When the label is ambiguous (29 % of rows fit several laws), the definition of the router’s target is a lever. Five definitions of “the right law” are complementary and add up; more seeds of one definition saturate at three.</li>
 <li>The A-board is five wells with about 2 points of standard error, and a 0.1 OOF gain transfers at a fraction. Small levers need a cross-fitted OOF over all 80 wells before a slot is spent.</li>
-<li>Reproduce before submitting. The rules disqualify code that does not reproduce the result, and the fracturing problem showed that unpinned library versions change tree models by 1 to 10 % per well. Every well-log package passes a clean-room rerun with an identical SHA256.</li>
-<li>Machine notes that cost hours: a stopped cloud pod can resume on another host with an empty container disk, so weights and zips go to the network volume; three concurrent CatBoost GPU jobs stall a 16 GB card; kill processes only by PID or exact script name.</li>
+<li>Levers that act on every row transfer to the board; levers that act on the ambiguous rows do not. Law snapping and the gate nets transferred at 0.8 and 1.0 of their OOF gain; router re-targeting, which only touches the rows that fit several laws, at 0.05 to 0.2, because the share of those rows differs from well to well.</li>
+<li>A rule set on 10-25, no more neural networks, was right about the value and law heads and wrong about the gate. The nets lost on every target where the label is an interpreter’s table, and won on the one decision where seeing the whole well matters, where a reservoir layer starts and ends. The useful question was not which architecture but which decision a model family sees differently from the trees. Sixty architectures on the SW value moved less among themselves than the gap to the trees.</li>
+<li>Reproduce before submitting. The rules disqualify code that does not reproduce the result, and the fracturing problem showed that unpinned library versions change tree models by 1 to 10 % per well. Every well-log package passes a clean-room rerun with an identical SHA256, and the shipped net inference is numpy with a parity check against torch.</li>
+<li>Machine notes that cost hours: a stopped cloud pod can resume on another host with an empty container disk, so weights and zips go to the network volume; three concurrent CatBoost GPU jobs stall a 16 GB card; a background shell on this Windows machine makes a GPU job five to seven times slower, so nets train in the foreground; kill processes only by PID or exact script name.</li>
 </ol>
-<h2 id="9-What-comes-next"><a href="#9-What-comes-next" class="headerlink" title="9. What comes next"></a>9. What comes next</h2><ol>
-<li>A joint latent-state decoder: the POR law, the PERM law and the SW constant decoded together, using the shared boundaries measured in section 2 (a POR-law switch is seven times more likely at an SW jump). Continue only if it reaches +0.20 OOF or +0.05 on continuous-row POR.</li>
-<li>SW state reconstruction with a different observation model: infer the water&#x2F;oil boundary from local evidence, solve the Archie constant from the water side, allow abrupt changes, keep the direct regression as a low-confidence fallback. This is the only model-side direction with a credible route to more than half a point.</li>
-<li>A test-prior router as a low-weight sixth group (+0.0058 total OOF, measured), worth one package probe but not a new pipeline.</li>
-<li>Not planned: larger sequence models, more fold splits, more individual POR laws, generic features already among the 425, and per-row smoothing over the same probabilities. All of these have produced gains below +0.05 OOF and transferred at a fraction of that.</li>
-</ol>
+<h2 id="9-Where-it-ended"><a href="#9-Where-it-ended" class="headerlink" title="9. Where it ended"></a>9. Where it ended</h2><ul>
+<li>The public board closed with the team at 83.619, rank 54; the tenth place was about 84.1 and the first 84.38. The top 10 needed another +0.5, and no lever on the list had it: the per-layer SW constant, worth about 3 points if known, is an interpreter’s table that the logs do not compute, and the public board’s per-well knobs did not compose.</li>
+<li>The hidden B-board, all 10 wells, decides advancement and is scored after the close.</li>
+<li>Not run, and what I would try with more time: a joint latent-state decoder (the POR law, the PERM law and the SW constant decoded together along depth, using the shared boundaries measured in section 2); a POR gate target in the sequence zoo, since the gate is where the nets paid off; and the RT residual (measured minus predicted RT, three times better than the trivial predictor) as a feature for the SW trees.</li>
+<li>Not planned: larger sequence models, more fold splits, more individual POR laws, generic features already among the 425, and per-row smoothing over the same probabilities. All of these produced gains below +0.05 OOF and transferred at a fraction of that.</li>
+</ul>
 
     </div>
 

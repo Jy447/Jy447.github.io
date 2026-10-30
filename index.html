@@ -131,7 +131,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-count">6</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -193,6 +193,13 @@
 
       <time title="创建时间：2026-10-25 18:15:00" itemprop="dateCreated datePublished" datetime="2026-10-25T18:15:00+08:00">2026-10-25</time>
     </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-10-31 01:00:00" itemprop="dateModified" datetime="2026-10-31T01:00:00+08:00">2026-10-31</time>
+    </span>
 
   
 </div>
@@ -204,8 +211,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>A working log from the well-log problem of the PetroChina algorithm challenge (中国石油算法挑战赛, preliminary round on the Kunlun platform), written on 2026-10-25 while the round is still open. It closes on 2026-10-30, and advancement uses a hidden board scored after the close. The post describes the task, what the labels turned out to be, the model, the measurements and the dead ends, not the package code. All numbers are as of the writing date.</p>
-<p>The round has four problems: pump anomaly warning, fracturing oil-gain prediction, well-log reservoir parameters and reservoir connectivity. On the pump and fracturing boards the tenth place sits at 100.0 and 98.02, scores no forecast produces, so those two got the remaining effort and the well-log board, the one with an ordinary spread (first place 84.38, tenth about 84.1, fiftieth 83.53), got most of it. Our package stands at 83.479, rank 62, up from the team’s 82.16 baseline of 09-14.</p>
+          <p>A working log from the well-log problem of the PetroChina algorithm challenge (中国石油算法挑战赛, preliminary round on the Kunlun platform). First written on 2026-10-25 while the round was open; updated on 2026-10-31, after the round closed on 2026-10-30, with the last five days: the gate nets that gave the final score, the study of the water-saturation constant, a sweep of ten sequence-network families, and the final standing. Advancement uses a hidden board scored after the close, which had not been published when this update was written. The post describes the task, what the labels turned out to be, the model, the measurements and the dead ends, not the package code. Numbers are as of 2026-10-31 unless dated.</p>
+<p>The round has four problems: pump anomaly warning, fracturing oil-gain prediction, well-log reservoir parameters and reservoir connectivity. On the pump and fracturing boards the tenth place sits at 100.0 and 98.02, scores no forecast produces, so those two got the remaining effort and the well-log board, the one with an ordinary spread (first place 84.38, tenth about 84.1, fiftieth 83.53), got most of it. The final package stands at 83.619 on the public board, rank 54 of about 1,200 participants, up from the team’s 82.16 baseline of 09-14 (rank 253 on 10-18) and from 83.479 (rank 62) when this post was first written.</p>
 <h2 id="1-The-task"><a href="#1-The-task" class="headerlink" title="1. The task"></a>1. The task</h2><ul>
 <li>80 training wells with 730,268 depth points and 10 test wells with 95,948 points, at a 0.1 m step, one text file per well.</li>
 <li>Inputs per depth point: depth, gamma ray (GR), photoelectric factor (PE), spontaneous potential (SP), caliper (CAL), sonic travel time (AC), bulk density (DEN), neutron (CNL), two resistivities (RXO shallow, RT deep), deviation and azimuth, bit size, casing.</li>
@@ -247,12 +254,15 @@
 <ul>
 <li>5,089 reservoir layers (runs of continuous POR), median 26 rows. The porosity family (density or sonic) is constant inside a layer (purity 0.99) and switches between consecutive layers 12 % of the time; sonic-law layers are the shallow, high-porosity, low-density, low-GR ones.</li>
 <li>Inside a layer the law switches in contiguous depth sub-intervals, but the switch points sit on no curve inflection and the laws overlap in curve range, so no piecewise function of DEN or AC reproduces a layer.</li>
-<li>The gate is a reservoir flag drawn per zone, not a cutoff on porosity: continuous POR labels go down to 0, and the would-be law porosity of default rows beside a zone has the same distribution as the zone’s edge rows. Gate misses are whole thin layers (median 15 rows, 66 % below 10 porosity units, high resistivity), not edges.</li>
+<li>The 18 % of continuous POR rows that fit no law are near misses, not a hidden twelfth law: the nearest law misses by 0.42 porosity units at the median against the 0.25 tolerance, half of those rows sit in runs of 1 to 3 rows, and no single-curve fit is exact on more than 6 % of the longer runs.</li>
+<li>The gate is a reservoir flag drawn per zone, not a cutoff on porosity: continuous POR labels go down to 0, and the would-be law porosity of default rows beside a zone has the same distribution as the zone’s edge rows. Gate misses are whole thin layers (median 15 rows, 66 % below 10 porosity units, high resistivity), not edges. The three gates nest: SW continuous within PERM continuous within POR continuous, and four states cover 99.6 % of the rows.</li>
 <li>The SW labels use the raw RT: inside a continuous run the Archie constant computed with the raw RT is flat (median deviation 0.004 in log10), and every smoothed RT or RXO fits worse.</li>
+<li>The SW constant is a table, not a function (measured 10-27). The water resistivity implied per clean layer peaks at round values, 0.04, 0.05, 0.055, 0.06, 0.07, 0.08, 0.10, 0.12, 0.15, 0.20 ohm m: the 15 most populated 0.01-wide bins hold 60 % of the layers against 16 % for a uniform spread. It follows a formation-water salinity profile with the same shape in every well printed, 0.3 to 2.4 in the shallowest reservoirs, 0.03 to 0.06 in the middle of the column, 0.10 to 0.15 at the bottom, with a spread of 5 to 7 tolerances at equal column position. A well uses about 7 distinct values over 20 clean layers, 60 % of consecutive clean layers keep the value, and the sequence is not monotone in depth. Inside a layer the fixed-exponent Archie form holds for 96 % of the oil rows at the median, but the exponents are not identifiable from one layer (the fitted log RT exponent runs from −0.53 to −0.17 across layers).</li>
 <li>SW constant jumps and POR-law switches share boundaries part of the time: the probability of a POR-law switch is 0.40 at an SW jump against 0.057 where SW is calm. The SW constant does not transfer between wells by absolute depth.</li>
 <li>Whole-well fits looked poor only because the constants change by zone: within 1 to 10 m windows POR is linear in the logs with R² 0.991 to 0.998, and SW is Archie with slope −0.495 on log RT.</li>
+<li>No test well duplicates a training well: zero exact row matches on five curves.</li>
 </ul>
-<h2 id="3-The-model-piece-by-piece"><a href="#3-The-model-piece-by-piece" class="headerlink" title="3. The model, piece by piece"></a>3. The model, piece by piece</h2><p>The package is one directory with the same five scripts for each well-fold split: train, calibrate, predict, validate, make the code zip. Two splits of the 80 wells into 5 folds are trained and averaged (10 fold directories).</p>
+<h2 id="3-The-model-piece-by-piece"><a href="#3-The-model-piece-by-piece" class="headerlink" title="3. The model, piece by piece"></a>3. The model, piece by piece</h2><p>The package is one directory with the same five scripts for each well-fold split: train, calibrate, predict, validate, make the code zip. Two splits of the 80 wells into 5 folds are trained and averaged (10 fold directories). The final package (two15nn, 4.5 GB of code and weights) adds three gate nets per fold directory.</p>
 <table>
 <thead>
 <tr>
@@ -267,9 +277,14 @@
 <td>the Rwa quantile features lifted SW regression on continuous rows from 0.174 to 0.180 and are the top feature in every fold; exact porosity inside the SW features matters (SW 0.194 with the predicted porosity, 0.230 with the label porosity)</td>
 </tr>
 <tr>
-<td>Gates</td>
-<td>per target, default against continuous: LightGBM, CatBoost and a 63-leaf LightGBM, probabilities median-smoothed over 5 rows, mixed, cut at calibrated thresholds 0.725 &#x2F; 0.6 &#x2F; 0.9</td>
-<td>the SW threshold is high because the SW value is unreliable; gate errors are whole thin layers and no post-processing fixes them</td>
+<td>Tree gates</td>
+<td>per target, default against continuous: LightGBM, CatBoost and a 63-leaf LightGBM, probabilities median-smoothed over 5 rows, mixed</td>
+<td>gate errors are whole thin layers and no post-processing fixes them; the SW threshold is high because the SW value is unreliable</td>
+</tr>
+<tr>
+<td>Gate nets (10-26)</td>
+<td>a 4-level 1-D U-Net with dilated residual blocks over 2048-row crops of the whole well; inputs are the 11 raw curves, their per-well median-centred copies, missing flags, the 11 law values, the depth fraction and the 425 tree features; 800 steps with input noise and per-channel scale and shift augmentation; three seeds per fold directory, numpy inference in the package. Its probabilities are mixed into the tree gates at 0.6 &#x2F; 0.6 &#x2F; 0.1 for POR &#x2F; PERM &#x2F; SW, cut at thresholds 0.75 &#x2F; 0.65 &#x2F; 0.9</td>
+<td>the trees see one row and its rolling features, the net sees the whole well and places the default-to-continuous edges differently; the mix is worth +0.13 to +0.14 cross-fitted, every fold positive, and +0.14 on the board. The net overfits the training wells within a few hundred steps, so short training and augmentation are the regularisers: one net matches the trees’ gate AUC (0.9836 on POR), five seeds exceed it (0.9845). Its value and law heads lose to the trees (POR 0.26 against 0.34, SW 0.15 against 0.20 on continuous rows; the law head 0.42 against 0.49 once snapped) and are not used</td>
 </tr>
 <tr>
 <td>POR regression</td>
@@ -293,12 +308,12 @@
 </tr>
 <tr>
 <td>Calibration</td>
-<td>blend weights, gate mix, thresholds, scales, snap thresholds and law window chosen on the out-of-fold predictions with the official metric; a leave-one-fold-out “cross-fitted OOF” is reported</td>
+<td>blend weights, gate mix, net gate mix, thresholds, scales, snap thresholds and law window chosen on the out-of-fold predictions with the official metric; a leave-one-fold-out “cross-fitted OOF” is reported</td>
 <td>differences under 0.05 are calibration noise</td>
 </tr>
 <tr>
 <td>Checks</td>
-<td>result format check, 5 unit tests, and a clean-room rerun of every package with an identical SHA256</td>
+<td>result format check, 5 unit tests, a parity check of the numpy net inference against torch, and a clean-room rerun of every package with an identical SHA256</td>
 <td>the rules disqualify code that does not reproduce the result</td>
 </tr>
 </tbody></table>
@@ -363,16 +378,22 @@
 <td>two15 (10-23)</td>
 <td align="right">82.06</td>
 <td align="right">83.479</td>
-<td>reward-maximisation routers; team best</td>
+<td>reward-maximisation routers</td>
 </tr>
 <tr>
-<td>knob probes (10-25)</td>
+<td>knob probes (10-25, 10-26)</td>
 <td align="right"></td>
 <td align="right">83.353 to 83.418</td>
-<td>POR 0.65 &#x2F; SW 0.95 thresholds, SW gate 0.97, POR scale × 1.01, PERM gate 0.50, PERM snap 0.60: none helps</td>
+<td>POR 0.65 &#x2F; SW 0.95 thresholds together, SW gate 0.97, POR scale × 1.01, PERM gate 0.50, PERM snap 0.60: none helps</td>
+</tr>
+<tr>
+<td>two15nn (10-28)</td>
+<td align="right">82.19</td>
+<td align="right"><strong>83.619</strong></td>
+<td>three U-Net gate nets per fold directory mixed into the gates; +0.13 OOF became +0.14 on the board; rank 54, the final package</td>
 </tr>
 </tbody></table>
-<p>The gap between the OOF (82.06) and the A-board (83.48) says the five public wells are easier than the average training well, and a 0.1 difference between packages is within the calibration noise.</p>
+<p>The gap between the OOF (82.19) and the A-board (83.62) says the five public wells are easier than the average training well. How much of an OOF gain reaches the board depends on the lever: law snapping 0.8, the second split 0.7, the gate nets about 1.0, router re-targeting 0.05 to 0.2, and a 0.1 difference between packages is within the calibration noise.</p>
 <h2 id="5-What-worked-in-order-of-board-value"><a href="#5-What-worked-in-order-of-board-value" class="headerlink" title="5. What worked, in order of board value"></a>5. What worked, in order of board value</h2><table>
 <thead>
 <tr>
@@ -387,6 +408,12 @@
 <td>the labels are the interpreter’s formulas; a router picks the law and the row takes the exact value</td>
 <td align="right">+0.9</td>
 <td align="right">+0.73</td>
+</tr>
+<tr>
+<td>raw-curve U-Net gate nets mixed into the three gates</td>
+<td>a whole-well sequence model places the default-to-continuous edges differently from the row-wise trees; the mix is a diversity gain, not an accuracy gain</td>
+<td align="right">+0.13 to +0.14</td>
+<td align="right">+0.14</td>
 </tr>
 <tr>
 <td>physics-shaped targets and features (POR residual on the density law, Rwa quantiles, formation context)</td>
@@ -443,32 +470,36 @@
 <td align="right">1.58 &#x2F; 1.79</td>
 </tr>
 </tbody></table>
-<p>SW loses about 8.9 weighted points across its gate and value pools. With the true water-resistivity constant and the predicted porosity SW would score 0.394 on the both-continuous rows instead of 0.211, and 0.861 with the true porosity as well. POR routing still has about 3.3 points of oracle headroom. PERM is comparatively strong.</p>
+<p>SW loses about 8.9 weighted points across its gate and value pools. With the true water-resistivity constant and the predicted porosity SW would score 0.394 on the both-continuous rows instead of 0.211, and 0.861 with the true porosity as well. The per-layer SW constant is the single largest unclaimed pool: with the median constant of each predicted reservoir layer known, and the present porosity, the two15 OOF would rise from 82.08 to 85.03. POR routing still has about 3.3 points of oracle headroom. PERM is comparatively strong.</p>
 <h2 id="7-What-did-not-work"><a href="#7-What-did-not-work" class="headerlink" title="7. What did not work"></a>7. What did not work</h2><ul>
 <li><strong>Formula targets for SW</strong>: predicting the zone constant with the trees and rebuilding SW (0.151 against 0.174 direct); the constant’s spread across zones (0.227 log units) exceeds SW’s own (0.103). Snapping SW to a law: 21 to 22 % law accuracy, worse even with the label porosity. Even with the true water&#x2F;oil labels and the label porosity, the law that best separates water from oil rows within ±15 m identifies the zone’s constant on only 44 % of rows.</li>
 <li><strong>SW sequence models on the 10-25 pass</strong>: Archie-constant smoothing in SW space, latent-law Viterbi decoding, quantile residuals, censored constant regression, direct optimisation of the official SW score, a 10-fold data-size probe (+0.0013). All negative or inside noise.</li>
+<li><strong>The SW constant from the labels’ own structure (10-26, 10-27)</strong>: the oil&#x2F;water-contact rule (the largest water-row Archie term within a window bounds the constant from below) holds on the labels, 45 to 55 % of oil rows with the true water rows, but the model’s water rows are too noisy (rebuilt SW 0.09 to 0.15 against 0.21), and as features of a correction model it costs 0.02 to 0.07. Estimators of the per-layer constant: the median of the regression’s own implied constant is within tolerance on 44 % of oil rows; snapping it to the 0.01 grid, LightGBM on layer descriptors, stratigraphic proxies (column fraction, rank), gate-derived bounds and pooling across the zone all stay at or below that, because the error is a per-zone bias (correlation 0.83 between consecutive same-constant layers). The persistence oracle, the previous layer’s true constant, reaches 57 %; the well median 18 %. A net or a tree predicting the constant directly and rebuilding SW with the snapped porosity: 0.157 against 0.211.</li>
 <li><strong>Law choice variants</strong>: one law per layer (−0.009), order-constrained Viterbi over depth (+0.002 as smoothing, worse when enforcing a law order), consensus votes per layer, analog-well transfer by depth shift (28 % right against 45 % for the classifier), a bigger law classifier (+0.0026 at twice the cost), a 13-class model replacing gate plus router (a tie), a GPU dilated-convolution + BiGRU law network (0.42 against 0.47 for LightGBM).</li>
-<li><strong>Gates</strong>: per-row expected-score gate (−0.03), hysteresis and length rules (+0.01), boundary-position features (0), predictable per-well thresholds.</li>
-<li><strong>Regressors and losses</strong>: L2 and linear-leaf trees (worse than L1), hedging SW and PERM between the default and the regression (−0.04), a mode-seeking Welsch refinement of the L1 member (+0.02, not worth shipping alone), a multi-task MLP on the features (worse alone, +0.02 blended), a dilated CNN on the engineered features (78.67 alone, +0.05 blended).</li>
-<li><strong>Every neural plug-in from the paper notes</strong>: SE, SK, FiLM, MoE, ALiBi, external memory, HiPPO, query pooling, DyT, engram, chunking, gradient reversal, retrieval priors, quantisation. None beats the tree router (0.33 against 0.39 routing accuracy for the best of them).</li>
+<li><strong>Gates</strong>: per-row expected-score gate (−0.03), hysteresis and length rules (+0.01), boundary-position features (0), predictable per-well thresholds, nested-gate constraints that force SW within PERM within POR (−0.024 to +0.001: the independent decisions were already optimal).</li>
+<li><strong>Regressors and losses</strong>: L2 and linear-leaf trees (worse than L1), hedging SW and PERM between the default and the regression (−0.04), a mode-seeking Welsch refinement of the L1 member (+0.02, not worth shipping alone), a multi-task MLP on the features (worse alone, +0.02 blended), a dilated CNN on the engineered features (78.67 alone, +0.05 blended), per-well calibration jitter as augmentation for a tree router (noise or −0.008; what helped the nets does not help the trees).</li>
+<li><strong>Every neural plug-in from the paper notes</strong> on a law stacker: SE, SK, FiLM, MoE, ALiBi, external memory, HiPPO, query pooling, DyT, engram, chunking, gradient reversal, retrieval priors, quantisation. None beats the tree router (0.33 against 0.39 routing accuracy for the best of them). Retried after the gate nets worked, with short training and the tree probabilities as inputs or as a residual: 0.44 against 0.49 snapped POR; augmented law heads 0.43. The corrections learned on training wells hurt on held-out wells.</li>
 <li><strong>Depth-context stackers</strong> (LightGBM and neural) on top of the out-of-fold predictions.</li>
+<li><strong>A zoo of ten sequence-network families (10-28)</strong>, one target per run, about 60 members, all bidirectional over the whole well: gated recurrence (GRU, LSTM, IndRNN, sLSTM, CfC), linear recurrence and state-space (Mamba, LRU, minGRU, RWKV, QRNN, SRU, Griffin, RetNet, mLSTM, gated DeltaNet, TTT, Titans, linear attention), convolution (TCN, WaveNet, Inception, deformable, U-Net), attention over GRU states (sliding window, MQA, GQA, NSA, Swin, Linformer, PatchTST, DETR memory), full Transformers (global, banded, iTransformer), event-time designs, stack variants (DyT and other norms, residuals, widths), output heads (MLP, KAN, MoE, ACON, classification), input fronts (channel MLP, Mixer, VSN, SE, ROCKET, MiniRocket) and privileged-information teachers. On the SW value the trees score 0.202 on the continuous rows; the best nets reach 0.17 on fold 0 (a banded Transformer, a GRU with sliding-window attention, a classification head, Griffin) and shrink to within 0.006 of the plain GRU (0.155) on 5 folds, except the classification head (0.170) and a 4-layer DyT stack (0.165). Their SW gates (AUC 0.972 to 0.976) sit under the trees (0.978) and mixing them moves the total by −0.007 to +0.002. Teachers that read the true porosity reach 0.19, their students 0.15: the privilege does not transfer. On a side target, predicting log RT from the other curves, the simplest stacks win (a GRU without the residual connection, 0.0725 decades on 5 folds; TTT 0.0721 at 15 times the inference cost). No zoo member improves the submission.</li>
 <li><strong>More data in one model</strong>: an all-80-wells model set at weight 0.5 (−0.07 on the board; it cannot be calibrated), a third well-fold split (−0.008 OOF), ten folds instead of five (+0.0013).</li>
-<li><strong>Global knobs on the board</strong> (10-25): five probes, every one between −0.075 and +0.0026. Individually favourable thresholds do not compose: applying POR 0.65 and SW 0.95 together to the stronger package lost 0.075. The response surface is non-additive, and knob stacking is not a route to +0.6.</li>
+<li><strong>Global knobs on the board</strong> (10-25, 10-26): five probes, every one between −0.075 and +0.0026. Individually favourable thresholds do not compose: applying POR 0.65 and SW 0.95 together to the stronger package lost 0.075. The response surface is non-additive, and knob stacking is not a route to +0.5.</li>
 </ul>
 <h2 id="8-Lessons"><a href="#8-Lessons" class="headerlink" title="8. Lessons"></a>8. Lessons</h2><ol>
 <li>Read the label generator before modelling. Whole-well regressions looked like a noisy physical relation; 1 to 10 m windows showed exact linear laws, and a greedy search for sharp peaks in the label residuals over slope grids recovered them. That one finding is worth more than everything else combined.</li>
 <li>A tolerance metric rewards exact identification, not accuracy. Once a prediction is outside 8 % or 5 %, it earns zero, so a router that lands on the right law beats a regressor that is 6 % off everywhere.</li>
 <li>When the label is ambiguous (29 % of rows fit several laws), the definition of the router’s target is a lever. Five definitions of “the right law” are complementary and add up; more seeds of one definition saturate at three.</li>
 <li>The A-board is five wells with about 2 points of standard error, and a 0.1 OOF gain transfers at a fraction. Small levers need a cross-fitted OOF over all 80 wells before a slot is spent.</li>
-<li>Reproduce before submitting. The rules disqualify code that does not reproduce the result, and the fracturing problem showed that unpinned library versions change tree models by 1 to 10 % per well. Every well-log package passes a clean-room rerun with an identical SHA256.</li>
-<li>Machine notes that cost hours: a stopped cloud pod can resume on another host with an empty container disk, so weights and zips go to the network volume; three concurrent CatBoost GPU jobs stall a 16 GB card; kill processes only by PID or exact script name.</li>
+<li>Levers that act on every row transfer to the board; levers that act on the ambiguous rows do not. Law snapping and the gate nets transferred at 0.8 and 1.0 of their OOF gain; router re-targeting, which only touches the rows that fit several laws, at 0.05 to 0.2, because the share of those rows differs from well to well.</li>
+<li>A rule set on 10-25, no more neural networks, was right about the value and law heads and wrong about the gate. The nets lost on every target where the label is an interpreter’s table, and won on the one decision where seeing the whole well matters, where a reservoir layer starts and ends. The useful question was not which architecture but which decision a model family sees differently from the trees. Sixty architectures on the SW value moved less among themselves than the gap to the trees.</li>
+<li>Reproduce before submitting. The rules disqualify code that does not reproduce the result, and the fracturing problem showed that unpinned library versions change tree models by 1 to 10 % per well. Every well-log package passes a clean-room rerun with an identical SHA256, and the shipped net inference is numpy with a parity check against torch.</li>
+<li>Machine notes that cost hours: a stopped cloud pod can resume on another host with an empty container disk, so weights and zips go to the network volume; three concurrent CatBoost GPU jobs stall a 16 GB card; a background shell on this Windows machine makes a GPU job five to seven times slower, so nets train in the foreground; kill processes only by PID or exact script name.</li>
 </ol>
-<h2 id="9-What-comes-next"><a href="#9-What-comes-next" class="headerlink" title="9. What comes next"></a>9. What comes next</h2><ol>
-<li>A joint latent-state decoder: the POR law, the PERM law and the SW constant decoded together, using the shared boundaries measured in section 2 (a POR-law switch is seven times more likely at an SW jump). Continue only if it reaches +0.20 OOF or +0.05 on continuous-row POR.</li>
-<li>SW state reconstruction with a different observation model: infer the water&#x2F;oil boundary from local evidence, solve the Archie constant from the water side, allow abrupt changes, keep the direct regression as a low-confidence fallback. This is the only model-side direction with a credible route to more than half a point.</li>
-<li>A test-prior router as a low-weight sixth group (+0.0058 total OOF, measured), worth one package probe but not a new pipeline.</li>
-<li>Not planned: larger sequence models, more fold splits, more individual POR laws, generic features already among the 425, and per-row smoothing over the same probabilities. All of these have produced gains below +0.05 OOF and transferred at a fraction of that.</li>
-</ol>
+<h2 id="9-Where-it-ended"><a href="#9-Where-it-ended" class="headerlink" title="9. Where it ended"></a>9. Where it ended</h2><ul>
+<li>The public board closed with the team at 83.619, rank 54; the tenth place was about 84.1 and the first 84.38. The top 10 needed another +0.5, and no lever on the list had it: the per-layer SW constant, worth about 3 points if known, is an interpreter’s table that the logs do not compute, and the public board’s per-well knobs did not compose.</li>
+<li>The hidden B-board, all 10 wells, decides advancement and is scored after the close.</li>
+<li>Not run, and what I would try with more time: a joint latent-state decoder (the POR law, the PERM law and the SW constant decoded together along depth, using the shared boundaries measured in section 2); a POR gate target in the sequence zoo, since the gate is where the nets paid off; and the RT residual (measured minus predicted RT, three times better than the trivial predictor) as a feature for the SW trees.</li>
+<li>Not planned: larger sequence models, more fold splits, more individual POR laws, generic features already among the 425, and per-row smoothing over the same probabilities. All of these produced gains below +0.05 OOF and transferred at a fraction of that.</li>
+</ul>
 
       
     </div>
@@ -1037,7 +1068,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://jy447.github.io/2026/05/28/%E4%B9%90%E5%9C%A8%E5%85%B6%E4%B8%AD%E7%9A%84%E5%A4%A9%E8%B5%8B%E6%96%BD%E5%B1%95/">
+    <link itemprop="mainEntityOfPage" href="https://jy447.github.io/2026/05/29/%E4%B9%90%E5%9C%A8%E5%85%B6%E4%B8%AD%E7%9A%84%E5%A4%A9%E8%B5%8B%E6%96%BD%E5%B1%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1055,7 +1086,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/05/28/%E4%B9%90%E5%9C%A8%E5%85%B6%E4%B8%AD%E7%9A%84%E5%A4%A9%E8%B5%8B%E6%96%BD%E5%B1%95/" class="post-title-link" itemprop="url">乐在其中的天赋施展</a>
+          <a href="/2026/05/29/%E4%B9%90%E5%9C%A8%E5%85%B6%E4%B8%AD%E7%9A%84%E5%A4%A9%E8%B5%8B%E6%96%BD%E5%B1%95/" class="post-title-link" itemprop="url">乐在其中的天赋施展</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1081,238 +1112,6 @@
     
     <div class="post-body" itemprop="articleBody">
           
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://jy447.github.io/2026/05/27/%E6%80%8E%E4%B9%88%E9%9D%A2%E5%AF%B9%E6%81%90%E6%83%A7%EF%BC%8C%E5%B0%B1%E6%98%AF%E8%87%AA%E5%B7%B1%E7%9A%84%E5%91%BD%E8%BF%90/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="sunArise">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="sunArise">
-      <meta itemprop="description" content="quant - CS">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | sunArise">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/05/27/%E6%80%8E%E4%B9%88%E9%9D%A2%E5%AF%B9%E6%81%90%E6%83%A7%EF%BC%8C%E5%B0%B1%E6%98%AF%E8%87%AA%E5%B7%B1%E7%9A%84%E5%91%BD%E8%BF%90/" class="post-title-link" itemprop="url">怎么面对恐惧，就是自己的命运</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2026-05-27 15:41:13" itemprop="dateCreated datePublished" datetime="2026-05-27T15:41:13+08:00">2026-05-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-05-28 04:58:55" itemprop="dateModified" datetime="2026-05-28T04:58:55+08:00">2026-05-28</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>人怎样面对恐惧，就是自己的命运。也就勇敢面对找方法，以及做个fucking coward，回避。</p>
-<p>人怎么会一无所有，人还有恐惧，还有恐惧欲望这一对主要矛盾。吃斋念佛，诵经打坐，也没人能心如止水，清净无为。能真正做到，已经不是人了。金池长老参禅百年，还敌不过贪心一瞬。</p>
-<p>我看杀穿地狱，倒是能立地成佛。离地狱近，还可以卡bug，刷功德。</p>
-<p>佛既慈悲也残忍，佛宝可助我，佛法也可杀我。</p>
-<p>物质一无所有，精神还不贫瘠，不恐惧的，已经是颜回了，圣人之下，凡人之上，弟子三千，只一个颜回。1&#x2F;3000&#x3D;0.033%， 所以99.977%是假的。</p>
-<hr>
-<p>走到水里，让自己有利用价值。既不是出于好意，也不是出于偶然。跟战力，跟利用价值有关系，但也不全是。ta可能单纯想看戏，好戏，游戏，地球online的无限流。</p>
-<p>谁不想看一场好戏？谁不想做那只编织事件，操纵规律，审判裁决支配的无形的手。</p>
-<p>众生皆苦，万相本无。是啊，各自的恐惧和欲望不同。</p>
-<p>万法皆空，唯因果不空。</p>
-<p>比起被折断，被围困，被放逐，被征服，更让人感受到自己卑微渺小的是被戏谑，被嘲弄，被操纵，被引诱。要是能反向戏谑嘲弄拿捏命运天道，超越本能，凌驾于软弱的意愿和倾向。看透环境&#x2F;人&#x2F;天道背后的目的和意图，不放弃地抗争博弈，面对困境产生源源不断的解决方案。</p>
-<p>那可真是一场好戏。</p>
-<p>是看一个懂得隐忍，伪装，反扑，博弈的角色有意思，还是看一个既不自知，也难反抗的角色。猎杀猎物也是前者有意思。一只小狗想干翻苍穹。</p>
-<p>矛盾跟戏剧性。</p>
-<p>忍字头上一把刀，一味忍耐，徐自图强。</p>
-<p>凡人之身比肩神明。不想成神，但想要神的能力。</p>
-<p>顺势逆势都不如造势逞势。</p>
-<p>善良但不是善茬，是要做个善良的人。几乎所有的恶意恶行都来自于无能为力。想要的东西长期得不到，他反而会厌恶那个东西，需求满足不了，反而会转向凌虐弱者。一个人没有怎么无能为力过，那对弱者没啥恶意，当然也没啥兴趣。暴力是功能性的，不是宣泄性的。</p>
-<p>弱者需要更现实的方法或者途径，许愿也是种方法，强者帮助也是种办法。最好的办法还是交换，用自己的优势去交换保护。</p>
-<p>人在冗余的地方才会松弛，但人不松弛也难以实现冗余。</p>
-<hr>
-<p>想做棋手，先做棋子。从模仿扮演，到去创造演绎。更具体的，需要一个purpose，需要增加自己的利用价值。</p>
-<p>习惯。</p>
-<ol>
-<li><p>实践和执行力，把想做的事情变成现实。内心的一股力量很强。</p>
-<p>执行力强是一种习惯，实践能力也是一种习惯。少想一点，把东西带到现实里面。很少有半途而废，做不成一件事的时候。</p>
-<p>干了不一定成，不干一定不成。</p>
-</li>
-<li><p>深挖，对一件事深耕的能力。坚忍耐烦，劳怨不避。人而无恒，一事无成。</p>
-</li>
-<li><p>习惯和训练。</p>
-</li>
-</ol>
-<p>quant和网安，computer guys和金融会培育出什么怪物。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://jy447.github.io/2026/05/15/%E5%8E%9F%E5%88%99/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="sunArise">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="sunArise">
-      <meta itemprop="description" content="quant - CS">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | sunArise">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/05/15/%E5%8E%9F%E5%88%99/" class="post-title-link" itemprop="url">原则</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2026-05-15 15:50:57" itemprop="dateCreated datePublished" datetime="2026-05-15T15:50:57+08:00">2026-05-15</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-05-28 06:22:40" itemprop="dateModified" datetime="2026-05-28T06:22:40+08:00">2026-05-28</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>漫长的六道轮回，就像一个无限流游戏。不说有千万年，也有千百年了，区区十年，又算得了什么呢。如同当年的一年，人若能活70岁，一年不过1.42%。</p>
-<p>东西方的神明都能有一点感应。</p>
-<p>我将坚守我的原则。我将发扬我的优点。</p>
-<p>我既不是神明，也不算人类。我无意作为神明，却想要媲美神明威能的能力。</p>
-<p>原则可以超越本能。凌驾于自我的意愿和倾向。比如这个人内心明明倾向于接受，但仍然选择拒绝。</p>
-<p>这不意味着黑暗。站在黑暗之中，不意味着心弦黑暗。</p>
-<p>需要意志上的守序，<strong>需要自身的一些原则为自己提供稳定性。才能不吃压力。</strong></p>
-<p>意志上的守序并不影响手段，物质上的表现，在某些时候，有过之而无不及。</p>
-<p>目前没有想信仰的东西，承认不等于信仰。信仰还需要带有一种动力，一种目的。我承认天下没有免费的午餐，这就没有然后，说明这不是一种信仰。</p>
-<p>目前没有这个东西，只需要选一条相对接近的道路。</p>
-<p>所以，我的原则是什么？</p>
-<ol>
-<li>喜欢探索灰度，游走边缘，剑走偏锋，并且通过平衡走向极端。</li>
-<li>还是喜欢越级挑战，降维打击，抗争现状。</li>
-<li>还是喜欢深刻，喜欢真相。</li>
-<li>还是喜欢物竞天择的混乱。博弈是在混乱之中存在秩序，但根基仍然是混乱。让一个混乱的信徒不再混乱，本质也是一种混乱，而且是一种更深刻的混乱。守序还是无序。</li>
-<li>还是喜欢预测，或是预言。</li>
-<li>还是喜欢看各路线索，思考破局的关键，喜欢多方博弈的局面。</li>
-<li>还是喜欢风险，喜欢赌。</li>
-</ol>
-<p>最后选择3+6来决定后面的约定。</p>
-<hr>
-<p>我的优点，抛弃对俗世的框架的维护，也抛弃对别人的观点的探究。坚韧不拔的决心，对一件事深耕的能力。种树，松竹。</p>
-<p>能力不来自天赋，而来自模仿，或者扮演。而理解是一种联系。愿意模仿什么，则来自于选择。</p>
-<p>至于外界，不是出于偶然，也不是出于好意，只是出于系统需要而已。</p>
-<p>人如果愿意承担自己选择的代价，就不叫贪婪。</p>
-<p>有些东西，有些预言，只是未来无数条命运线的一条，当然有失败的可能。命运永远在变化，谁都不能确定锁遇见的未来会不会到来。所以不是答案，而是线索，不是真相，而是指引。</p>
-<p>有些东西，又像草蛇灰线，掷出的骰子永远是某个点数。这是对否定命运的抗议，还是对无力改变的讥笑。</p>
-<p>如果想反抗这种东西，除非有一个更高的目的，甚至为了这个目的，违背心中的本能。</p>
-<p>有些时候，目的远比性命重要。而这种目的，如果跟他的命运相符，他在践行命运，如果跟他的命运相悖，他在改变命运。</p>
-<p>如果命都没有了，这个目的又有什么意义？</p>
-<p>如果失去了目标，活着又有什么意义？</p>
-<hr>
-<p>有什么可以坚持十年的？</p>
-<ol>
-<li><p>我要每天发现一个谎言。谎言就像天上的星星一样多。违背事实的，才能叫做谎言，或者灰度非常深。隐瞒一部分事实，拼接不同的事实，要超过某个灰度阈值才能被判作谎言。</p>
-<p>为了培养善于观察细节，掌握人心，以及布局。最深刻的真实就是欺骗，愚者，这个愚，有愚弄，也有造象的意思。</p>
-</li>
-<li><p><del>我需要做3件能增强能力，且我昨天已经做过了的事。需要明确定义，具体增强的是什么能力，以及证明这种能力，怎么得到了增强。并且有一项能力，持续7天不变。</del></p>
-<p><del>比如昨天我做了ABCDEF，今天我可以选择做ACD，明天我如果能做BEF需要我今天也做了BEF。持续7天不变是指D，如果我选择做他，需要连续7天做他。</del></p>
-<p>我单纯需要增加稳定性，所以找3件事，需要做7天。</p>
-<p>一件quant，一件Internet security，一件coding</p>
-<p>人而无恒，一事无成。</p>
-</li>
-<li><p>我需要找到一个事件，这个事件类似于一个局。然后提出可能的破局点，并且参考以前的结果，推理出某个真相。判定的原则是做出一个可能的预测，或者在现有结论之下的深入。至少凑齐3方，并且靠引入新的势力来进行博弈和剥削。</p>
-</li>
-</ol>
-<p>1和3允许存储，但是必须支付利息。也就是需要更深入，或者其他的切入角度。</p>
-
       
     </div>
 
@@ -1413,7 +1212,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://jy447.github.io/2026/05/10/%E7%BA%B5%E7%84%B6%E6%A8%AA%E6%89%AB%E5%8D%83%E5%86%9B%E4%B8%87%E9%A9%AC-%E4%B9%9F%E6%9C%89%E7%89%B5%E6%8C%82%E7%BB%88%E9%9A%BE%E6%94%BE%E4%B8%8B/">
+    <link itemprop="mainEntityOfPage" href="https://jy447.github.io/2026/05/08/hello-world/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1431,97 +1230,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/05/10/%E7%BA%B5%E7%84%B6%E6%A8%AA%E6%89%AB%E5%8D%83%E5%86%9B%E4%B8%87%E9%A9%AC-%E4%B9%9F%E6%9C%89%E7%89%B5%E6%8C%82%E7%BB%88%E9%9A%BE%E6%94%BE%E4%B8%8B/" class="post-title-link" itemprop="url">纵然横扫千军万马 也有牵挂终难放下</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2026-05-10 17:06:20" itemprop="dateCreated datePublished" datetime="2026-05-10T17:06:20+08:00">2026-05-10</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-05-28 05:17:27" itemprop="dateModified" datetime="2026-05-28T05:17:27+08:00">2026-05-28</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>耽美&#x2F;百合跟阴阳状态有关。</p>
-<p>纯百合我见得不多。女的能量强，官杀力强阳性力量强。她xp其实是男的，现实里搞搞四爱SM，大多还是跟男的结婚生子，家产一堆男生跟男生之间细腻生动的情感。女的看耽美很多，男的看百合的还真没那么多。。。</p>
-<p>男性本身是纯阳载体，太阴的特质强，心眼跟菠萝一样多，有很阴柔算计的一面。弱的当妈宝男，而且为了寻求刺激会纵欲，很乱搞，他就喜欢那种被折磨掌握的感觉。强的可能，呵呵，好尤物娈童。这种男的左右逢源，长袖善舞，为达目的不择手段。看出身和身份地位，位置高的怎么都会有威严遮挡一下。</p>
-<p>而且男的。。。好色最多评价他管不住下半身。但真不好女色，一般有更bt东西在身上的。做0的男人，比做1的，如果那个1质量高，眼高于顶还不会乱搞，那个0更nb其实。</p>
-<p>纯卖的不评价。</p>
-<hr>
-<p>身弱的能量要强，很简单，补印。印不是说什么书本学历这些，印更多是种承托，有人给你兜底，家世背景给你兜底，title教育给你兜底，你想干什么就干什么。你不是二代，也是老天的二代。直接买奢侈品补气，效果最好，豪宅+豪车。</p>
-<p>要是本身在一个恶劣的环境，自己弱小，还被打得毫无还手之力，是悲剧的事情。财多身弱，对女生来说比男生好。混交际，资源的置换，女生天然有性别优势，因为这都是种攀附。但是对男性的要求要远比女性严苛，男性需要有更坚实，更站得住脚的东西才能上桌。</p>
-<p>身强的，行业，方位，房屋风水最好不跟原本的气冲突，但是一些自己能操控的细节，比如颜色&#x2F;穿搭&#x2F;宠物这些，可以适量刑冲激发。</p>
-<p>强的爆发力强，续航容易跟不上，信念感就要很足。摧眉折腰干不喜欢的事，会难受。如果这个事是他自己的选择，反而既不觉得辛苦，也不会后悔。以力证道。</p>
-<p>很需要有头铁，非要做的事情。因为对喜欢的东西，才可以非常拼命，行动力拉满。再往上做到有恒心。行动力不够，不够喜欢，不够触动自己的内心，他想不清楚，能量还耗散太多，会强极转弱的。</p>
-<p>这种弱，会比本身就弱的气味，更吸引垃圾。</p>
-<p>是杀一只本质上强大，懂得隐忍，伪装，反扑，能和你博弈的猎物更有意思。还是杀一只死到临头既不自知，也难反抗的猎物更有意思呢？</p>
-<p>没有什么比赢，还要补气了。低配版就是看到自己有进步。</p>
-<p><img src="/./images/ocean_blue_aerial_bandura.jpg" alt="ocean_blue_aerial_bandura"></p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://jy447.github.io/2026/05/07/hello-world/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="sunArise">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="sunArise">
-      <meta itemprop="description" content="quant - CS">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | sunArise">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/05/07/hello-world/" class="post-title-link" itemprop="url">Hello World</a>
+          <a href="/2026/05/08/hello-world/" class="post-title-link" itemprop="url">Hello World</a>
         </h2>
 
         <div class="post-meta-container">
