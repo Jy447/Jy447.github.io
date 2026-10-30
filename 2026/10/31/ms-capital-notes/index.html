@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"jy447.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="A working log from the MS Capital Real Financial Market Forecasting competition on Kaggle (A-share level-2 data, metric uncentered cosine), written on 2026-10-31 from the notes, three weeks after the">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MS Capital notes, ten minutes of an A-share order book, what one window can know, and how the shuffled windows gave back their clock">
+<meta property="og:url" content="https://jy447.github.io/2026/10/31/ms-capital-notes/index.html">
+<meta property="og:site_name" content="sunArise">
+<meta property="og:description" content="A working log from the MS Capital Real Financial Market Forecasting competition on Kaggle (A-share level-2 data, metric uncentered cosine), written on 2026-10-31 from the notes, three weeks after the">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://jy447.github.io/images/ms/arch_nn.png">
+<meta property="og:image" content="https://jy447.github.io/images/ms/arch_pipeline.png">
+<meta property="og:image" content="https://jy447.github.io/images/ms/arch_xattn.png">
+<meta property="article:published_time" content="2026-10-30T18:00:00.000Z">
+<meta property="article:modified_time" content="2026-10-30T17:36:15.396Z">
+<meta property="article:author" content="sunArise">
+<meta property="article:tag" content="competition">
+<meta property="article:tag" content="machine learning">
+<meta property="article:tag" content="market microstructure">
+<meta property="article:tag" content="quant">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jy447.github.io/images/ms/arch_nn.png">
+
+
+<link rel="canonical" href="https://jy447.github.io/2026/10/31/ms-capital-notes/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://jy447.github.io/2026/10/31/ms-capital-notes/","path":"2026/10/31/ms-capital-notes/","title":"MS Capital notes, ten minutes of an A-share order book, what one window can know, and how the shuffled windows gave back their clock"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>MS Capital notes, ten minutes of an A-share order book, what one window can know, and how the shuffled windows gave back their clock | sunArise</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">sunArise</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">记录与思考</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-The-task"><span class="nav-number">1.</span> <span class="nav-text">1. The task</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-What-one-window-can-know"><span class="nav-number">2.</span> <span class="nav-text">2. What one window can know</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-The-pipeline-step-by-step"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 The pipeline, step by step</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-The-network"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 The network</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-Direction-is-the-whole-game"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 Direction is the whole game</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-What-the-network-reads"><span class="nav-number">2.4.</span> <span class="nav-text">2.4 What the network reads</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-Twelve-ideas-from-the-literature-synthetic-against-real"><span class="nav-number">2.5.</span> <span class="nav-text">2.5 Twelve ideas from the literature, synthetic against real</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-6-What-did-not-work-inside-one-window"><span class="nav-number">2.6.</span> <span class="nav-text">2.6 What did not work inside one window</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-The-clock-the-shuffle-did-not-erase"><span class="nav-number">3.</span> <span class="nav-text">3. The clock the shuffle did not erase</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-Why-the-board-moved"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 Why the board moved</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-Three-fingerprints"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 Three fingerprints</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-From-links-to-time-axes"><span class="nav-number">3.3.</span> <span class="nav-text">3.3 From links to time axes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-Score-history"><span class="nav-number">3.4.</span> <span class="nav-text">3.4 Score history</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-Growing-the-coverage"><span class="nav-number">3.5.</span> <span class="nav-text">3.5 Growing the coverage</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-6-The-last-layer"><span class="nav-number">3.6.</span> <span class="nav-text">3.6 The last layer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-7-What-did-not-work-in-the-structure"><span class="nav-number">3.7.</span> <span class="nav-text">3.7 What did not work in the structure</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-The-external-data-study"><span class="nav-number">4.</span> <span class="nav-text">4. The external-data study</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-Lessons"><span class="nav-number">5.</span> <span class="nav-text">5. Lessons</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-After-the-close"><span class="nav-number">6.</span> <span class="nav-text">6. After the close</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">sunArise</p>
+  <div class="site-description" itemprop="description">quant - CS</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jy447.github.io/2026/10/31/ms-capital-notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="sunArise">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="sunArise">
+      <meta itemprop="description" content="quant - CS">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="MS Capital notes, ten minutes of an A-share order book, what one window can know, and how the shuffled windows gave back their clock | sunArise">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MS Capital notes, ten minutes of an A-share order book, what one window can know, and how the shuffled windows gave back their clock
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-10-31 02:00:00 / 修改时间：01:36:15" itemprop="dateCreated datePublished" datetime="2026-10-31T02:00:00+08:00">2026-10-31</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>A working log from the MS Capital Real Financial Market Forecasting competition on Kaggle (A-share level-2 data, metric uncentered cosine), written on 2026-10-31 from the notes, three weeks after the round closed on 2026-10-09. The problem had two layers and the post covers both. A model that reads one ten-minute window and nothing else reached 0.168 on the public board, and no architecture moved it further. The windows are shuffled and anonymous, but their timestamps still carry the exchanges’ clocks, and stitching the windows that ran at the same time back together, from the official data alone, took the same model to 0.334 public and 0.317 private, 8th place. A third version aligned the windows to external minute bars; it reached 0.444 on the public board and was not selected after the host ruled that external data may not be used to recover stock, date or time. The sections follow that order: the task, what one window can know, the clock the shuffle did not erase, the external-data study, lessons, and what the write-ups said after the close. Numbers are the validation cosine on months 60 to 70 unless marked as public or private board scores.</p>
+<h2 id="1-The-task"><a href="#1-The-task" class="headerlink" title="1. The task"></a>1. The task</h2><ul>
+<li>A sample is one A-share stock at a prediction time T: 600 seconds of level-2 snapshots every 3 seconds (two price levels on each side, 200 snapshots) and the last 60 seconds of tick-by-tick orders and trades. Prices are divided by the last trade before T, the stock code and the date are removed, and the sample ids are shuffled.</li>
+<li>1,257,637 training samples over 71 “months” and 647,896 test samples over 38 blocks. The snapshot table has 222 million training rows and 118 million test rows, the order table 170 and 119 million, the trade table 104 and 71 million. About 30 GB of parquet and tensors after preprocessing.</li>
+<li>The target is a weighted sum of mid-price returns after T: y &#x3D; 0.9 r(60 s) + 0.45 r(300 s) + 0.15 r(1800 s), with r(h) &#x3D; mid(T+h) &#x2F; mid(T) − 1. The weights were confirmed during the round by an integer test (y × mid(T) &#x2F; 0.075 fen is an integer because mid prices sit on a half-fen grid); the horizons were not. We worked with 60 &#x2F; 180 &#x2F; 585 seconds until the 7th-place write-up and external one-minute bars showed 60 &#x2F; 300 &#x2F; 1800 after the close (correlation with y 0.775 against 0.656). Section 6 has what that cost.</li>
+<li>The metric is the uncentered cosine between the prediction vector and the target vector. It rewards direction, but every sample is weighted by |y|: the 5 % of samples with the largest |y| carry 54 % of Σy², and the 193,474 validation rows have an effective sample size of about 8,000. A cosine of 0.19 explains 3.6 % of the variance. The sampling error of one model’s cosine is about ±0.004, the error of the difference between two highly correlated models about ±0.0007. Δcos ≈ ΔR² &#x2F; (2 cos): at cos 0.2, +0.01 needs 0.4 % more of Σy² explained, which is a new signal correlated about 0.06 with the residual.</li>
+<li>Five submissions per day, two final picks, a community round with no prize money: the top ten are invited to a meetup in Shanghai and must hand in a solution that an AI can reproduce from the submitted prompt. The data page says the organiser’s data may be used and processed in any way, and that any external data or model is strictly prohibited.</li>
+</ul>
+<p>What the data turned out to be, measured from the official files alone:</p>
+<ul>
+<li>A month is ten consecutive trading days, not half a calendar month. Training runs from 2022-01-04 to 2024-12-09; the test set continues from 2024-12-10 into mid-2026.</li>
+<li>A fixed pool of about 1,800 stocks (later matched to CSI 800 plus CSI 1000), every stock with exactly one window per trading day. Moutai, the only stock above 1,300 yuan, appears exactly ten times in every block. T falls only between 10:00 and 11:00 and between 13:30 and 14:30, on the 3-second grid, so a target never crosses the lunch break or the close.</li>
+<li>The absolute price is recoverable from the relative tick size (0.01 yuan divided by the relative tick), which is how windows could be matched to the real market later.</li>
+<li>The test ids were shuffled with numpy’s RandomState(1).permutation, as the leader disclosed on the forum. Undoing it restores 38 blocks of ten days in time order; the order inside a block is random, and a search over thousands of generator and seed combinations (RandomState, default_rng, polars, python, torch, dask, several table layouts, seeds into the millions) found nothing. A probe submission that zeroed the predictions of blocks 19 to 37 kept the same public score (0.242) and scored 0.053 on the private board, so the public board is the first 19 blocks (December 2024 to September 2025) and the private board the last 19.</li>
+<li>Validation uses months 60 to 70 (late June to early December 2024), with two folds by month parity. Month 66 (24 September to 14 October 2024, the stimulus rally) has a target standard deviation of 50 bp against 20 to 33 bp elsewhere and carries 26 % of the validation Σy²; several “gains” lived only there, so every number was read on four views: all months, months 67 to 70, adversarially re-weighted to resemble the test period, and without month 66. The test set resembles the quiet months 60 to 65, and the public score ran at 0.89 to 0.94 times the validation score on those months.</li>
+</ul>
+<h2 id="2-What-one-window-can-know"><a href="#2-What-one-window-can-know" class="headerlink" title="2. What one window can know"></a>2. What one window can know</h2><h3 id="2-1-The-pipeline-step-by-step"><a href="#2-1-The-pipeline-step-by-step" class="headerlink" title="2.1 The pipeline, step by step"></a>2.1 The pipeline, step by step</h3><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>What changed</th>
+<th align="right">Validation</th>
+<th align="right">Public</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>LightGBM on 361 handcrafted features, fitting y directly</td>
+<td align="right">0.152</td>
+<td align="right">0.151</td>
+</tr>
+<tr>
+<td>2</td>
+<td>two-stage σ scaling: a first LightGBM fits σ &#x3D; E|y|, a second fits z &#x3D; y &#x2F; σ, the prediction is z · σ</td>
+<td align="right">0.164</td>
+<td align="right">0.153</td>
+</tr>
+<tr>
+<td>3</td>
+<td>order-flow features: parent-order aggregation, order position relative to the book, direction of the last k trades</td>
+<td align="right">0.170 to 0.173</td>
+<td align="right">0.154</td>
+</tr>
+<tr>
+<td>4</td>
+<td>a GRU over the snapshots and the event stream, plus a static MLP</td>
+<td align="right">0.174</td>
+<td align="right"></td>
+</tr>
+<tr>
+<td>5</td>
+<td>self-supervised stacking: the window’s own earlier part as a pseudo-labelled model, its output as a feature</td>
+<td align="right">0.176 (LightGBM)</td>
+<td align="right">0.154</td>
+</tr>
+<tr>
+<td>6</td>
+<td>one network for the real label and the pseudo labels at T−15 and T−30</td>
+<td align="right">0.180 to 0.183</td>
+<td align="right">0.158 to 0.159</td>
+</tr>
+<tr>
+<td>7</td>
+<td>twelve epochs of pretraining on the pseudo tasks, then fine-tuning</td>
+<td align="right">0.187</td>
+<td align="right">0.160</td>
+</tr>
+<tr>
+<td>8</td>
+<td>next-event and future-statistics heads; a Transformer encoder tried and dropped (0.186 against the GRU’s 0.189)</td>
+<td align="right">0.189</td>
+<td align="right">0.162</td>
+</tr>
+<tr>
+<td>9</td>
+<td>a sampling bug found: the pseudo samples had only ever been drawn from the first 2.13 million sorted rows, so the test windows and the long-horizon tasks had never been trained on</td>
+<td align="right">0.191</td>
+<td align="right">0.165</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Noisy Student: a blended teacher writes soft labels on the validation and test windows, the student fits them next to the real labels</td>
+<td align="right">0.193</td>
+<td align="right">0.168</td>
+</tr>
+<tr>
+<td>11</td>
+<td>a 600-second member, Muon for the hidden matrices (+0.001), inference over 512 events instead of 256 (+0.0015), a mirror-augmented LightGBM; a blend of four networks and the tree model</td>
+<td align="right">0.200 (blend)</td>
+<td align="right">0.168</td>
+</tr>
+<tr>
+<td>12</td>
+<td>nn4: a leak in the padding of the shifted views fixed, a backed-off target for the main head</td>
+<td align="right">0.199 (single)</td>
+<td align="right">used from section 3 on</td>
+</tr>
+</tbody></table>
+<p>Everything after step 10 landed on the same 0.168: the board shows three decimals and the later single-window gains were below that. The private score of this blend was 0.130.</p>
+<p>Two of the steps deserve a note. The σ scaling is the largest single move in the whole single-window line, because the cosine is dominated by the large-|y| rows and a model that fits y directly spends its capacity on magnitude; with σ fitted first, the second stage only has to get the direction right on a unit scale. The sampling bug (step 9) is the kind that hides for a week: every pseudo-task epoch “ran”, the loss went down, and the diagnostics only showed that the new sample groups were never drawn when a per-group counter was added to the training log. Two conclusions written before the fix (“test windows in pretraining are the main gain”, “four backed-off views are worse than two”) had to be withdrawn.</p>
+<h3 id="2-2-The-network"><a href="#2-2-The-network" class="headerlink" title="2.2 The network"></a>2.2 The network</h3><p><img src="/images/ms/arch_nn.png" alt="Figure 2, the single-window network"></p>
+<p>Two sequence encoders with the same layout: a linear layer with GELU, a convolution of width 3 (causal on the event stream) with a residual connection, a two-layer GRU of width 128, and a concatenation of the last state with an attention pooling over time, then a LayerNorm. The bar encoder reads 100 bars of 3 seconds (24 features each, the last 300 seconds). The event encoder reads the last 60 seconds of orders and trades, up to 256 events in training and 512 at inference (31 % of test windows had more than 256 events, against 20 % in training). 219 short statistics, available at T, T−15 and T−30, go through an MLP into the trunk (a linear layer of 384 with GELU); the 150 static features with the highest LightGBM importance go through a second MLP straight into the return head. About 1.5 million parameters.</p>
+<p>The return head predicts z &#x3D; clip(y &#x2F; σ, ±6) with a squared loss, with σ from the first-stage LightGBM. The other heads are what the pretraining and the fine-tuning share: a pseudo-label head (the window’s own short-horizon moves seen from T−15 or T−30), a next-event head (type, price level, size and gap of the next event, cross-entropy), a future-statistics head and a market head. Each fine-tuning step mixes four sample types from one network: real samples at T (1,024 rows, months 0 to 59), pseudo samples at a backed-off time (2,048 rows, all training and test windows), distillation samples (1,024 rows, the teacher’s prediction on validation and test windows) and backed-off target samples (512 rows, the realised move from T’ to T plus the teacher’s value at T, divided by σ(T’)). Pretraining takes 12 epochs on the pseudo tasks only (about 35 minutes on a laptop GPU), fine-tuning 7 epochs with Muon on the hidden matrices and AdamW on the rest, EMA 0.999, learning rate 5e-4 with a one-cycle schedule (15 minutes, 25 with Noisy Student), and a final retrain on months 0 to 70 with the epoch count of the best validation epoch plus one.</p>
+<p>Three measurements on this design:</p>
+<ul>
+<li>The pretraining is worth half the gap. A ridge probe on a frozen encoder’s 64-dimensional projection scores 0.116 at random initialisation, 0.148 after pseudo-label pretraining alone, 0.175 after fine-tuning: without seeing a real label, the pseudo tasks give 55 % of the way from random to fine-tuned.</li>
+<li>The backed-off views leaked. In the shifted samples the padding slots of the event tensor had taken the new reference price, so their value equalled the pseudo label itself and their count equalled the number of future events. The pseudo-task cosine inside the window was 0.74 before and 0.40 after the fix; the whole nn3 family had largely been reading padding, and the “long-horizon event task” experiments had to be discarded with it. The fixed network (nn4) gained +0.002 from the fix and +0.002 from the backed-off target.</li>
+<li>Muon changes what fine-tuning touches. With the original scaling it wiped the pretraining (first epoch 0.177 against 0.187); with the Moonlight scaling at the AdamW learning rate it is +0.001 on four views for the main recipe and −0.002 on another, so not a stable gain. The spectrum of the weight change explains the mechanism: the effective rank of ΔW rises from 0.30 to 0.70 of the smaller dimension and the top five singular directions drop from 48 % to 20 % of the energy.</li>
+</ul>
+<h3 id="2-3-Direction-is-the-whole-game"><a href="#2-3-Direction-is-the-whole-game" class="headerlink" title="2.3 Direction is the whole game"></a>2.3 Direction is the whole game</h3><p>The model’s prediction is a direction times a magnitude, and the cosine can be taken apart on the validation set:</p>
+<table>
+<thead>
+<tr>
+<th>Prediction</th>
+<th align="right">cos</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>the model: predicted direction × predicted magnitude</td>
+<td align="right">0.199</td>
+</tr>
+<tr>
+<td>predicted direction, the same magnitude for every row</td>
+<td align="right">0.162</td>
+</tr>
+<tr>
+<td>the sign only, ±1</td>
+<td align="right">0.126</td>
+</tr>
+<tr>
+<td>predicted direction × the true magnitude |y|</td>
+<td align="right">0.324</td>
+</tr>
+<tr>
+<td>the true direction × predicted magnitude</td>
+<td align="right">0.749</td>
+</tr>
+<tr>
+<td>the true direction × a constant</td>
+<td align="right">0.664</td>
+</tr>
+</tbody></table>
+<p>The predicted σ correlates 0.478 with |y|, and no σ model got past 0.48 (L1, Huber, Gamma, y² targets, early stopping, all 747 features). Magnitude has given most of what it can; everything above 0.2 has to come from direction. The direction hit rate is 56.5 %, which is exactly the Gaussian value for a cosine of 0.2 (1&#x2F;2 + arcsin(0.20) &#x2F; π &#x3D; 56.4 %), 59.6 % when weighted by |y|. By conviction decile it runs from 50 % to 69.7 %, and on the 1 % of rows the model is surest about 78 %.</p>
+<p>Where the conviction comes from is mostly the kind of stock, not the state of the book:</p>
+<table>
+<thead>
+<tr>
+<th>Conviction decile</th>
+<th align="right">Median price</th>
+<th align="right">One tick</th>
+<th align="right">σ</th>
+<th align="right">σ in ticks</th>
+<th align="right">Below 5 yuan</th>
+<th align="right">Hit rate</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>lowest</td>
+<td align="right">16.4 yuan</td>
+<td align="right">6.1 bp</td>
+<td align="right">16.9 bp</td>
+<td align="right">2.86</td>
+<td align="right">6 %</td>
+<td align="right">50.2 %</td>
+</tr>
+<tr>
+<td>5th</td>
+<td align="right">14.4</td>
+<td align="right">6.9</td>
+<td align="right">15.8</td>
+<td align="right">2.35</td>
+<td align="right">9 %</td>
+<td align="right">54.9 %</td>
+</tr>
+<tr>
+<td>8th</td>
+<td align="right">8.6</td>
+<td align="right">11.6</td>
+<td align="right">14.0</td>
+<td align="right">1.20</td>
+<td align="right">23 %</td>
+<td align="right">62.3 %</td>
+</tr>
+<tr>
+<td>highest</td>
+<td align="right">5.2</td>
+<td align="right">19.3</td>
+<td align="right">13.1</td>
+<td align="right">0.68</td>
+<td align="right">47 %</td>
+<td align="right">69.7 %</td>
+</tr>
+</tbody></table>
+<p>A cheap stock with a 19 bp tick usually does not move a full tick in the next minutes; the two visible levels cover the whole range the price can reach, and whichever queue is thinner gets eaten first, so the direction is readable. An expensive stock with a 6 bp tick has to move about three ticks, the two levels cover only the first, and the book’s lean says little about where the price will be in three minutes. Those small-tick stocks carry 44 % of Σy² and the network scores 0.177 on them (0.148 without month 66). Standing at T−15 or T−30 and predicting only the next 15 or 30 seconds, the same model reaches 0.287 and 0.276 (8 % of variance); on the full target it is 0.199 (3.9 %): the book’s information decays within the first minute.</p>
+<p>Data helps slowly: with 25 %, 50 % and 100 % of the real labels the main recipe scores 0.184, 0.189 and 0.193, +0.004 to +0.005 per doubling and not flattening, so reaching 0.245 this way would take about ten doublings. Rolling retraining every two and a half months did nothing (0.1633 fixed against 0.1637 rolling on a tree proxy) and recency weighting hurt (0.1607); the lever is volume, not freshness.</p>
+<h3 id="2-4-What-the-network-reads"><a href="#2-4-What-the-network-reads" class="headerlink" title="2.4 What the network reads"></a>2.4 What the network reads</h3><p>Shapley values over the four branches (share of the prediction variance, cosine of the branch alone): bar GRU 44 % and 0.117, event GRU 43 % and 0.168, short statistics 11 % and 0.124, full statistics 3 % and 0.024. The bar and event contributions correlate only +0.15, so the two streams carry different information; removing the events drops the model to 0.126, removing the bars to 0.167. Occlusion ranks the inputs: event direction and type cost 0.070 when hidden, far ahead of event price level 0.017, the bar price path 0.016, the spread 0.013, trade size 0.011, volume 0.009, timing 0.007, order-flow imbalance 0.006, depth 0.006 and the book imbalance 0.001. In time, the last 30 seconds of bars cost 0.029 and every earlier segment at most 0.002; events in the 5 seconds before T cost 0.023, those 5 to 15 seconds before 0.007.</p>
+<p>An impulse test makes the same point: a fake new bid of 100 lots inserted at the best price 1, 5, 15, 30 and 55 seconds before T moves the prediction by +0.089, +0.054, +0.023, +0.012 and +0.006 σ. The size effect is concave (1 lot to 1,000 lots gives about ×10, proportional to volume^0.34), a thick 1,000-lot order decays more slowly because it is still sitting there, the same order on the ask moves the prediction −0.12 against +0.17 on the bid, an order five levels below the best is worth 40 % of one at the best, and a cancellation moves it the other way at half the size although cancellations have no predictive power in the data (the attention looks at them at 0.75 of the average weight).</p>
+<p>The behaviours the network keys on, measured on the raw events without the model:</p>
+<table>
+<thead>
+<tr>
+<th>Behaviour in the last 60 s</th>
+<th>Correlation with y &#x2F; σ (train, validation)</th>
+<th align="right">Correlation with the prediction</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>a trade one level above its own best (taking the touch at a one-tick spread)</td>
+<td>+0.095, +0.080</td>
+<td align="right">+0.42</td>
+</tr>
+<tr>
+<td>a new order one level above its own best</td>
+<td>+0.059, +0.047</td>
+<td align="right">+0.26</td>
+</tr>
+<tr>
+<td>a new order at its own best</td>
+<td>+0.052, +0.031</td>
+<td align="right">+0.23</td>
+</tr>
+<tr>
+<td>a trade two or more levels up</td>
+<td>+0.032, +0.029</td>
+<td align="right">+0.14</td>
+</tr>
+<tr>
+<td>far orders (1, 2 to 5, 6 or more levels back)</td>
+<td>+0.012, +0.010, +0.007</td>
+<td align="right">+0.07, +0.04, +0.01</td>
+</tr>
+<tr>
+<td>cancellations at any level</td>
+<td>−0.002 to +0.009</td>
+<td align="right">about 0</td>
+</tr>
+<tr>
+<td>trades in the last 5 s, 5 to 20 s, 20 to 60 s</td>
+<td>+0.083, +0.079, +0.062</td>
+<td align="right">+0.39, +0.35, +0.26</td>
+</tr>
+</tbody></table>
+<p>And the regularities behind them, checked on 60,000 validation windows: the direction of aggressive orders is autocorrelated (+0.27 at lag 1, +0.16 at lag 10, still +0.125 at lags 20 to 50: large orders are sliced), the thin side gets eaten first (the next mid move is up 29 % of the time when the ask is much thicker and 67 % when the bid is, 26 % against 70 % at a one-tick spread), a full-tick move backed by same-direction trades keeps 110 % of itself after two minutes while a move made of quotes alone keeps 72 %, and a half-tick move grows to 1.6 to 1.8 times its size because the other side follows. Split flow carries the information: small orders arriving in runs of the same direction (under 50,000 yuan, at least four of the previous five aggressive orders on the same side) are 40 % of aggressive orders and 14 % of value and correlate +0.066 with the future; isolated round-lot small orders, the retail pattern, correlate +0.010; single orders above 200,000 yuan correlate +0.018 and part of their push comes back. Windows where only the split flow or a big order has a direction are 49 % of the windows, score 0.216 and provide 66 % of the model’s total. When the book is blown open (spread above four times normal, 0.7 % of windows) the cosine is 0.08 and the costs are at their highest; that is the time to stop.</p>
+<h3 id="2-5-Twelve-ideas-from-the-literature-synthetic-against-real"><a href="#2-5-Twelve-ideas-from-the-literature-synthetic-against-real" class="headerlink" title="2.5 Twelve ideas from the literature, synthetic against real"></a>2.5 Twelve ideas from the literature, synthetic against real</h3><p>Each idea from the reading list was written as a stand-alone script with two arms: a synthetic problem where the signal is 3 to 6 % of the label variance, built so that the idea’s mechanism shows, and a real slice (40,000 training rows from months 0 to 59, 30,000 validation rows from 60 to 70, 578 static features, three seeds, paired differences). The baseline MLP scores 0.153 on the slice, a ridge 0.152, LightGBM 0.138 to 0.155.</p>
+<table>
+<thead>
+<tr>
+<th>Idea</th>
+<th>Synthetic</th>
+<th>Real slice</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>buy-sell mirror augmentation, antisymmetric structure</td>
+<td>+0.011 and +0.008 when the truth is antisymmetric, −0.013 and −0.015 when it has a symmetric part</td>
+<td>+0.005, +0.0055 with test-time mirroring; full LightGBM +0.006, network 0, public board 0</td>
+</tr>
+<tr>
+<td>unlabelled pretraining (masked reconstruction, in-window future)</td>
+<td>+0.024</td>
+<td>−0.0015 on static features; +0.002 to +0.005 for the sequence encoder</td>
+</tr>
+<tr>
+<td>piecewise-linear numeric embeddings</td>
+<td>+0.009</td>
+<td>−0.010</td>
+</tr>
+<tr>
+<td>BatchEnsemble, TabM</td>
+<td>+0.004</td>
+<td>−0.004</td>
+</tr>
+<tr>
+<td>multi-horizon heads</td>
+<td>+0.002</td>
+<td>+0.002 ± 0.0015</td>
+</tr>
+<tr>
+<td>distillation, Noisy Student</td>
+<td>+0.004</td>
+<td>+0.002 ± 0.002; full pipeline +0.0024</td>
+</tr>
+<tr>
+<td>heteroskedastic losses: two-step σ, Gaussian NLL, β-NLL</td>
+<td>+0.018, +0.026, +0.028</td>
+<td>+0.007, +0.003, +0.001; the pipeline’s σ +0.009</td>
+</tr>
+<tr>
+<td>input noise, EMA, SWA, SAM</td>
+<td>EMA +0.081 on a deliberately overfit net</td>
+<td>EMA +0.011 only when trained too long; the early-stopped baseline beats all of them</td>
+</tr>
+<tr>
+<td>adversarial-validation weighting</td>
+<td>+0.054 for a linear model</td>
+<td>train-test AUC 0.91, 26 % effective samples left, 0.155 → 0.098</td>
+</tr>
+<tr>
+<td>Huber, small-loss selection</td>
+<td>mixed, +0.009 on heavy tails</td>
+<td>−0.012 and −0.036 (z is already clipped at ±6)</td>
+</tr>
+<tr>
+<td>evaluation noise</td>
+<td>picking the best of 20 equal models inflates the public score by +0.0046 and the private by 0</td>
+<td>seed standard deviation 0.0023</td>
+</tr>
+<tr>
+<td>random features plus ridge</td>
+<td>double descent at P &#x3D; N, flat once the ridge is tuned</td>
+<td>8,000 random features with ridge 30 score 0.153, equal to the MLP</td>
+</tr>
+</tbody></table>
+<p>Eleven of the twelve work on synthetic data; four work on the real slice. The ones that fail do so because a premise does not hold: the market is not symmetric (price limits, T+1 settlement, a label skew of +0.96), the adversarial weights leave too few effective samples, the noise is not heavy-tailed once z is clipped.</p>
+<h3 id="2-6-What-did-not-work-inside-one-window"><a href="#2-6-What-did-not-work-inside-one-window" class="headerlink" title="2.6 What did not work inside one window"></a>2.6 What did not work inside one window</h3><ul>
+<li><strong>Experts and gating</strong>: mixture of experts, liquidity and volatility experts, a high-volatility expert, CGC, σ-gated blend weights, multi-window experts: every expert correlates 0.98 or more with the baseline. The map from behaviour to direction is nearly the same across stock types and regimes; fitting the same 189 event counts separately by spread, tick, σ or activity adds +0.001 to +0.003.</li>
+<li><strong>Encoders</strong>: Transformer (−0.0006 on average, 70 % slower, 2.8 GB more memory; same-seed predictions correlate 0.969 with the GRU’s), InceptionTime, ResNet-1D, Perceiver, a parallel LSTM: 0.197 to 0.198 against 0.199. An n-gram “engram” memory of 1.5 million parameters memorised the labels (0.198 at epoch 3, 0.183 at the end). Three-way cross attention between streams, sinusoidal clock encodings, a causal self-attention encoder: 0.195 to 0.199. Width 64 or 192, BatchNorm, ReLU or SiLU: all slightly below 128, LayerNorm, GELU.</li>
+<li><strong>Inputs</strong>: explicit order-flow imbalance (the GRU already reads it from the events), path signatures, ROCKET and MiniRocket (2,000 random-kernel columns took LightGBM from 0.1628 to 0.1586, MiniRocket alone 0.022), scenario features (ignition, walls, divergence), behaviour vocabularies, HMM states: level or negative. Feature selection by single-column correlation and PCA both lose (keeping the 102 columns with |r| ≥ 0.05 gives 0.152 against 0.163 with all 578; the 213 columns with |r| &lt; 0.01 still score 0.115 on their own).</li>
+<li><strong>Training</strong>: adversarial and recency weighting (worse everywhere), differential learning rates, LP-FT, SWA, model soups and WiSE-FT (the fine-tuned models are not in one basin), self-distillation, three-horizon heads on the best recipe, a decoded one-minute label (its correlation with y is 0.984, so it carries the same information), kNN retrieval over the learned embedding (0.171 alone, −0.0004 in the blend), a LightGBM meta-stacker (+0.0005 to +0.002 offline, 0 on the board), σ^1.5 and turnover-bin calibration (+0.0015, all of it from month 66).</li>
+<li><strong>Residual hunting</strong>: fitting the network’s residual with handcrafted features gives +0.0008 (linear) or +0.016 (trees) in sample and does not transfer; the strongest scenario, big-order continuation, has t &#x3D; 3.5 but correlates 0.015 with the residual, a ceiling of +0.0006.</li>
+<li><strong>Other data</strong>: ten one-minute bars built from the window score 0.033 against 0.191 for the tick model (the direction lives in the book and the flow; the bars only know the volatility); external five-minute bars as inputs 0.090; an external market label to denoise the head, covering 7.5 % of windows, nothing.</li>
+</ul>
+<h2 id="3-The-clock-the-shuffle-did-not-erase"><a href="#3-The-clock-the-shuffle-did-not-erase" class="headerlink" title="3. The clock the shuffle did not erase"></a>3. The clock the shuffle did not erase</h2><h3 id="3-1-Why-the-board-moved"><a href="#3-1-Why-the-board-moved" class="headerlink" title="3.1 Why the board moved"></a>3.1 Why the board moved</h3><p>On 30 September five teams jumped to 0.22 and above in one night, while every single-window model on the board sat near 0.17. The leader (0.476 at the end) explained on the forum: the outer shuffle of the test set is RandomState(1), the samples can be restored “by day and stock”, and the samples of the following days are features. The host’s position, in a pinned post and in a reply on 9 October: the provided data may be processed in any way, including input observations that fall after a sample’s prediction time, in the training and the test set; external data may not be used, and in particular may not be used to recover the stock, the date or the time of a sample.</p>
+<p>So the second layer of the problem was: find which windows ran at the same time, using only what is in the files, and read the other windows’ observed futures. The score decomposes accordingly. On validation, with the recipe of 5 October,</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">y = what the book explains + what the same-session market explains + what nobody can guess</span><br><span class="line">       about 4 %                    about 10 %                            about 86 %     (shares of Σy²)</span><br></pre></td></tr></table></figure>
+
+<p>The two parts are nearly orthogonal (what the market does after T cannot be read from the book before T), so the cosines add as squares, not as numbers: 0.3786² &#x3D; 0.1433 ≈ 0.2018² + 0.1026, two legs of 0.20 and 0.32 and a hypotenuse of 0.38. Two consequences. A single-window improvement reaches the blend multiplied by cos_NN &#x2F; cos_blend ≈ 0.53, and averaging three networks instead of one moved the network leg from 0.1987 to 0.2009 and the blend by 0.0001. And the market leg is coverage: windows whose component index is known out to T+585 s (31 % of rows, 34.5 % of the energy) score 0.4885, those known only to T+180 s (23 %) 0.4015, those with nothing (46 %) 0.2365. Where the market is known, its part is about 20 % of Σy², five times the book’s. How many windows sit behind the index matters little (1 or 2 windows 0.47, 21 to 40 windows 0.54); whether any later window is connected is what counts.</p>
+<h3 id="3-2-Three-fingerprints"><a href="#3-2-Three-fingerprints" class="headerlink" title="3.2 Three fingerprints"></a>3.2 Three fingerprints</h3><p><img src="/images/ms/arch_pipeline.png" alt="Figure 1, the pipeline: three clock fingerprints give session components, features are computed on the components, and a hierarchical ridge blends them with the single-window networks"></p>
+<p>Anonymising the windows did not touch the timestamps, and three different clocks survive in them.</p>
+<ul>
+<li><strong>Snapshot clock groups.</strong> The 3-second snapshot interval has a millisecond jitter (2.998, 3.002, 3.010 s), and the jitter sequence is shared by the stocks of one clock group, about 700 to 800 groups of some seven stocks each. A key is three consecutive slot offsets; two windows that agree on at least six keys at the same shift are linked, and the shift between them is always a multiple of 3,000 ms (a random collision passes that test with probability 1&#x2F;3000). One later partner’s mid change over the 180 seconds after a window’s T correlates +0.275 with the window’s target. Coverage was the limit: 3.5 % of training windows and 7 % of test windows had a later partner with the first key, 13.5 % with the phase-based key.</li>
+<li><strong>Shenzhen jitter.</strong> Shenzhen snapshot timestamps carry a per-stock base phase (which follows the code order) plus the exchange clock’s jitter. After the slow drift is removed (a rolling median over 15 snapshots), the jitter sequences of two windows cross-correlate at their true offset. The search runs only over pairs whose phases are within 120 ms, as an FFT over all shifts on the GPU (the cuFFT plan cache had to be capped or the overflow ate 30 GB of system memory), and a link needs z &#x3D; atanh(ρ) √(n − 3) ≥ 8. The jitter is shared only within Shenzhen and only within about 100 ms of phase, decaying with code distance.</li>
+<li><strong>Shanghai batches.</strong> Shanghai tick timestamps cluster at four positions per second, 250 ms apart, with a phase that is random each day; the circular concentration of trade milliseconds modulo 250 has a median of 0.96 for Shanghai windows and 0.25 for Shenzhen, which is how the exchange of a window is known at all. The delay of each batch relative to the grid, a few to tens of milliseconds, is shared across the whole exchange. Per window the median offset of each batch is taken (about 241 batches in the last 60 seconds), two windows are compared only if both channels’ daily phases agree within 12 ms, the shift is scanned over ±19 slots and the two channels’ correlations are Fisher-combined. The first version was polluted: in some months about 10 % of windows had an extra 19 to 33 ms of delay on the batches aligned with snapshot times, a 3-second periodic component that correlates any two windows at every shift. Triangle closure (the three offsets of a link triangle must sum to zero) exposed it, 9 to 16 % in the bad blocks against 0.99 after those batches were excluded. The grid phase itself is a “day and half-day” key: all windows of one session share it within about 4 ms, twenty sessions fit in 250 ms, and the afternoon phase sits about 26 ms above the morning’s.</li>
+</ul>
+<h3 id="3-3-From-links-to-time-axes"><a href="#3-3-From-links-to-time-axes" class="headerlink" title="3.3 From links to time axes"></a>3.3 From links to time axes</h3><p>Links become components with a weighted union-find: every node keeps its parent and its offset in slots, edges are added from the most to the least confident, and an edge that contradicts the offsets already in the tree is dropped. Breadth-first search would be as fast on a few hundred thousand edges; the point is that one wrong edge in a spanning tree shifts a whole stretch of the session. A component is a set of windows overlapping inside one session. On it, a leave-one-out index is built from the members’ σ-normalised mid paths, and the features of a window are the index change after its T at 5 to 195 slots (15 to 585 seconds), times the window’s σ, times a pooled β. The same-session phase kernel adds the neighbours’ past 300 and 600 second returns, weighted by the proximity of their batch phase on the 250 ms circle (+0.015 on the single-window blend, +0.007 on the full blend, +0.006 on the board). By the end there were three time axes: the strict links, the grown placements and the assembled third axis.</p>
+<p>Coverage at the end, validation and test: the third axis sees T+60, T+180 and T+585 for 60.5, 54.6 and 36.7 % of windows (test 58.0, 51.4 and 31.5 %), the union of the three axes 72.4, 67.4 and 49.1 % (test 68.1, 62.1 and 41.7 %). Component sizes on the third axis, validation: 29 % of windows sit in components above 100 windows, 4 % in 21 to 100, 17 % in 6 to 20, 25 % in 2 to 5, and 24 % are isolated (test 20, 5, 21, 29 and 25 %).</p>
+<h3 id="3-4-Score-history"><a href="#3-4-Score-history" class="headerlink" title="3.4 Score history"></a>3.4 Score history</h3><table>
+<thead>
+<tr>
+<th>Date (UTC)</th>
+<th>Submission</th>
+<th align="right">Public</th>
+<th>What changed</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>09-29</td>
+<td>blend_01</td>
+<td align="right">0.151</td>
+<td>LightGBM and the first network</td>
+</tr>
+<tr>
+<td>10-02</td>
+<td>blend_12</td>
+<td align="right">0.168</td>
+<td>the single-window blend of section 2</td>
+</tr>
+<tr>
+<td>10-03</td>
+<td>blend_20 to 22</td>
+<td align="right">0.173, 0.179, 0.184</td>
+<td>exact-clock links: a later partner’s move after T; coverage 5.7 % → 13.5 %</td>
+</tr>
+<tr>
+<td>10-04</td>
+<td>tl78wb3</td>
+<td align="right">0.242</td>
+<td>Shenzhen jitter links and the first time axis (component index after T); offline +0.137 became +0.074</td>
+</tr>
+<tr>
+<td>10-04</td>
+<td>sh2n</td>
+<td align="right">0.248</td>
+<td>Shanghai batch-delay links</td>
+</tr>
+<tr>
+<td>10-04</td>
+<td>bv2g</td>
+<td align="right">0.251</td>
+<td>link variants, merge support lowered to 2, nn4 as a second base column</td>
+</tr>
+<tr>
+<td>10-05</td>
+<td>pk1</td>
+<td align="right">0.257</td>
+<td>the same-session phase kernel</td>
+</tr>
+<tr>
+<td>10-05</td>
+<td>sess1</td>
+<td align="right">0.272</td>
+<td>Shanghai session assembly, fragment to fragment, and two rounds of index attach</td>
+</tr>
+<tr>
+<td>10-05</td>
+<td>sessv1</td>
+<td align="right">0.281</td>
+<td>a price veto at every merge; rank 8</td>
+</tr>
+<tr>
+<td>10-05</td>
+<td>szua1</td>
+<td align="right">0.293</td>
+<td>Shenzhen frame attach and trade-activity co-movement as a new signal</td>
+</tr>
+<tr>
+<td>10-06</td>
+<td>gr1</td>
+<td align="right">0.300</td>
+<td>growth: confident units merged back into the frames</td>
+</tr>
+<tr>
+<td>10-06</td>
+<td>v60glw, lws</td>
+<td align="right">0.305, 0.307</td>
+<td>soft placement of unplaced windows; ridge plus a LightGBM correction</td>
+</tr>
+<tr>
+<td>10-07</td>
+<td>mzdr5 to mzdrq2010</td>
+<td align="right">0.310 to 0.312</td>
+<td>sync-confidence discount, candidate refinement, placement into small components</td>
+</tr>
+<tr>
+<td>10-07</td>
+<td>strict3F</td>
+<td align="right">0.319</td>
+<td>stricter links as the first axis and a third axis assembled from strict seeds</td>
+</tr>
+<tr>
+<td>10-08</td>
+<td>s3G5</td>
+<td align="right">0.322</td>
+<td>growth on the third axis, structure selection, residual-label networks, month 66 dropped from the fit</td>
+</tr>
+<tr>
+<td>10-09</td>
+<td>v21</td>
+<td align="right">0.333</td>
+<td>peer-group indices inside the frames, cross-window attention, low component threshold, λ 0.3</td>
+</tr>
+<tr>
+<td>10-09</td>
+<td>v24</td>
+<td align="right">0.334</td>
+<td>hierarchical ridge by component size, parameter-averaged over nine members; final pick, private 0.317</td>
+</tr>
+</tbody></table>
+<p>The offline gain reached the board at about half to two thirds in the early steps (coverage gains realise at the test set’s own coverage, which is a little lower than validation’s), near one to one for the activity signal and the growth, one third for the strict links (the public half’s weakest blocks barely co-move, so purity does not pay there), and 0.89 for the last two.</p>
+<h3 id="3-5-Growing-the-coverage"><a href="#3-5-Growing-the-coverage" class="headerlink" title="3.5 Growing the coverage"></a>3.5 Growing the coverage</h3><p>Every step from 0.242 to 0.322 was a way to put more windows on a time axis.</p>
+<ul>
+<li><strong>Session assembly, Shanghai.</strong> A session holds about 400 Shanghai windows in one hour with T about 9 seconds apart, so their 60-second tick streams overlap densely. Matching single windows against a template failed in an instructive way: coverage rose and the cosine did not, because a window passing the phase gate has about 1,100 candidate neighbours of which 13 are real, and its 60 seconds hold only 24 trade batches with values; a single coincident delay spike takes the correlation past the threshold. The version that worked compares fragment to fragment: each fragment is compressed to a template (the member-wise batch median, binned), one template is cut into 60-second segments, each segment is scored against the other at every shift with a log-ratio table learned from known clock links (the joint frequency of two delays at the true alignment over the product of their marginals), and the scores of all segments add up at the same shift, so ten self-consistent weak links can carry a merge and one spike cannot. The acceptance (score ≥ 22, lead ≥ 8 over the runner-up) keeps the cross-block control at 0 to 4 %. In month 70 the Shanghai windows in fragments of 20 or more went from 994 to 3,331, the largest fragment had 385 windows over 3,417 seconds at 68 windows per 600 seconds (a complete session has about 70), Shanghai T+585 coverage went from 13.8 % to 33.3 % and the month’s cosine from 0.3272 to 0.3355. A price check at every merge took the validation blend from 0.3786 to 0.3908 and the board from 0.272 to 0.281.</li>
+<li><strong>Index attach.</strong> A component’s index path is cross-correlated with an assembled session at 15 and 60 seconds; the component is split in two halves in time and both must land on the same shift (a time-reversed control is wrong a third of the time without that rule and 1 % with it). Two rounds help, a third does not.</li>
+<li><strong>Shenzhen frame attach.</strong> Since the jitter is shared only within 100 ms of phase, a template over a whole frame is useless; the attach builds, per query, a template from the frame members closest in phase and adds price co-movement at the same shift, and merges through a dedicated step rather than the global union-find, which would have split other frames.</li>
+<li><strong>Trade activity.</strong> The log number of trades per 3-second slot, z-scored per window, moves together across stocks of the same session: at the true offset the median z against the leave-one-out template is 2.54, at wrong offsets 0.15 ± 1.26, about as strong as price co-movement (2.3) and nearly independent of it. Price alone ranks the true shift first for 28 % of held-out members, counts alone 29 %, both together 43 %; keeping only placements with a margin of 2 or more leaves 16 % of them at 87 % precision. This signal moved the board from 0.281 to 0.293, and its offline gain realised in full.</li>
+<li><strong>Growth and soft placement.</strong> Confident units become star links of weight 50 and the templates are rebuilt; one round only, since the consistency of a second and third round fell to 0.26 and 0.11. The windows that stay unplaced get a soft placement: the best (frame, shift) by price and activity with the margin as a weight. With it, 25 % of validation rows still have nothing, hold 23 % of the energy and score 0.242.</li>
+<li><strong>Strict links.</strong> With external alignment used as a diagnostic (section 4), the large frames of the quiet months turned out to be only 36 % same-session: the weak links were piling sessions on top of each other. Raising the three thresholds (clock votes 8, batch z 9, jitter z 8) took that to 78 %, and re-seeding the assembly from the strict components gave a third axis that was 86 % pure. The board went to 0.319.</li>
+</ul>
+<h3 id="3-6-The-last-layer"><a href="#3-6-The-last-layer" class="headerlink" title="3.6 The last layer"></a>3.6 The last layer</h3><p><img src="/images/ms/arch_xattn.png" alt="Figure 3, cross-window attention: for a query window, members of the same component whose observed path covers its future are weighted by a small MLP on pair features, and their future increments are summed"></p>
+<ul>
+<li><strong>Peer-group indices.</strong> Members of the same exchange, the same price tier or the same turnover tier represent a window’s sector better than the whole component, so inside every frame the leave-one-out index is recomputed by exchange and by σ, price and turnover tercile: +0.0037 on months 60 to 65, the first item above the noise on 8 October.</li>
+<li><strong>Attention between windows.</strong> For a query w and the members m whose observed path covers at least half of w’s horizon, a 64 → 32 → 6 MLP on pair features (time gap, same exchange, same tiers, σ and price ratios, overlap correlation, β and length, the member’s return in w’s last minute, the size of the member’s future increment) gives a logit and a gain per horizon, and f_h &#x3D; Σ softmax(ℓ) (1 + tanh g) V. As a single column it scores 0.3892 against 0.3801 for the uniform average. The ablation is sobering: without the query features it loses 0.003, without the gain head 0.005, without the pairwise features 0.0004. The attention learns how much a window should trust its neighbours, not which neighbours; the weights are mild (55 neighbours on average, 41 effective, a maximum weight of 0.11) and follow the overlap synchrony and the shared tiers. Two practical findings: the attention columns must not be multiplied by σ again (they are already σ-normalised; scaling them lost 0.001 where leaving them gained 0.0017), and the official-data version wants a low component threshold and no more than 96 neighbours (256 hurt, because far members in a data-built frame are weak links), the opposite of the externally aligned version. In the blend the whole attention line is worth about +0.005.</li>
+<li><strong>The fit.</strong> Ridge with λ 0.3 on standardised columns, y winsorised at ±4σ, month 66 left out, predictions clipped at ±4σ. Independent fits per segment lose; one global set of coefficients plus strongly shrunk per-segment deviations for isolated windows, small components and large components gains +0.0012, and averaging the fit over nine single-knob neighbours changes the test predictions by nothing (correlation 1.0000 with the centre) while showing the gain is not a lucky knob. That is v24: validation 0.4553 on all months, 0.3735 on 60 to 65, 0.334 public, 0.317 private.</li>
+</ul>
+<h3 id="3-7-What-did-not-work-in-the-structure"><a href="#3-7-What-did-not-work-in-the-structure" class="headerlink" title="3.7 What did not work in the structure"></a>3.7 What did not work in the structure</h3><ul>
+<li><strong>The shuffle inside a block.</strong> Everything named in section 1 and more: the generator’s state advanced by k words before the permutation, shuffle-then-delete with Viterbi alignment, sample-then-sort with every tie-breaking path of numpy’s argsort (scalar, AVX2 on Windows and on Linux via a Kaggle kernel), polars’ old and new shuffle algorithms, two chained shuffles, dask partitions, an anchor detector on Moutai’s ten windows per block, a tail detector that needs no table length. The order inside a block is random, which the 0.393 team’s forum post independently confirmed.</li>
+<li><strong>Same stock, next day.</strong> Real and strong when known (+0.17 to +0.35 correlation with the target, measured with external truth), but a Shanghai stock cannot be re-identified across days from its fingerprint (25 to 30 % by nearest neighbour, 9 to 23 % with a global assignment), a Shenzhen stock can (phase plus price, 0.86) but its days cannot be ordered, and the windows where both ends are placeable are 6 % of the total, worth about +0.0015.</li>
+<li><strong>Isolated windows.</strong> The true same-session partners of an isolated window reach z ≥ 8 in the jitter cross-correlation 0.0 % of the time (median z 1.86); matching their price and activity against every component of the month at every shift finds the true place for 2.8 to 6.4 % of them, with a null maximum of z 5 to 6 against a true z of 1.1. The missing quarter is not a search failure, there is no signal in those windows, and the gap to the externally aligned version (section 4) split into +0.03 from placement precision and +0.06 from coverage.</li>
+<li><strong>Price-level alignment</strong> of components against sessions at 15-second scale (the market’s common component is too weak; a single window’s true position ranks first 6 % of the time, a component’s 0.2 %), the daily drift of the batch phase as a clock (±1 hour), Shenzhen daily phases as a date key (nothing shared), the lag between snapshot and trade clocks, millisecond-simultaneous events, spectral synchronisation over the day, “blind” synchronisation by price co-movement (the pairs are fake, z about 1).</li>
+<li><strong>In the blend</strong>: per-block quality reweighting (the test blocks’ quality distribution does not match the training months), β heterogeneity by stock features, regime columns, a fourth axis, data-driven peer weights (noise), frame-level set attention, a LightGBM residual stage on top of the ridge (−0.002), a stock-cluster index inferred from static fingerprints (+0.0006).</li>
+</ul>
+<h2 id="4-The-external-data-study"><a href="#4-The-external-data-study" class="headerlink" title="4. The external-data study"></a>4. The external-data study</h2><p>External minute bars were used from 10-06 as a research instrument: first to see what the leaders were doing, then to diagnose the official-data structure, then to build a version that aligns windows to the real market. It was never the final submission, and the host’s ruling on the last day settled why.</p>
+<ul>
+<li><strong>Identification.</strong> The absolute price of a window follows from its relative tick; daily bars filter the candidates of a block (price range, previous close where the book reveals it, exchange), and five-minute bars decide: volume within 0.5 %, close within 0.3 %, a unique candidate or one four times better than the runner-up, giving the code, the date and T. Component voting (members of one component must share date and clock) and two official-data keys (the Shanghai grid phase as a day-and-half-day key, the Shenzhen base phase as a code-order key) lifted validation coverage from 45 % to 80 to 82 %, with a cosine of 0.75 to 0.78 on the identified windows.</li>
+<li><strong>Three families</strong>, validation on months 60 to 65 (the board ran at about 0.9 of this): B, the official-data model of section 3, 0.3723. A, external data used only to align (code, date, T), every feature computed from official data, perfect session components, same-stock next-day pairs, peer indices and attention: 0.4893, or 0.4799 without the next-day columns. C, external future prices as features: 0.7273, an estimated 0.65 on the public board. The whole gap between A and B is windows the official data cannot place: with the aligned clock the score rises by +0.134 on isolated windows and by +0.021 on windows already in a large frame.</li>
+<li><strong>Submissions.</strong> A was submitted to the public board three times as a probe: 0.403 on 10-08 and, without next-day columns, 0.440 and 0.444 on 10-09. C was never submitted. Using the alignment only in training (as labels for a placement scorer, a link classifier or a distillation teacher) and nothing at inference was also measured: at most +0.003, so the score depends on having per-window alignment at inference, which is where the rule bites.</li>
+<li><strong>The rule.</strong> The data page: “The data provided by the organizer may be used and processed in any way. The use of any external data or models is strictly prohibited.” The host’s reply on 9 October: recovering stock, date and time with external historical data is not allowed; using official observations after T is. A and C both use external data. The two final picks were v24 and v21, both B.</li>
+<li><strong>Boards.</strong> Public, at the close: 0.476, 0.459, our A at 0.444 in third, tenth place 0.344, our B at 0.334 around twelfth. Private: 0.418, 0.371, 0.368, 0.359, 0.349 (the public leader), 0.341, 0.337, and our B at 0.317 in eighth. The unselected A scored 0.417 on the private board. The single-window blend scored 0.130 there; the private half had a little more coverage and a little less book signal than the public half.</li>
+</ul>
+<h2 id="5-Lessons"><a href="#5-Lessons" class="headerlink" title="5. Lessons"></a>5. Lessons</h2><ol>
+<li>Decompose the metric before modelling. The uncentered cosine adds in squares over orthogonal sources, and the book, the same-session market and the noise split 4 &#x2F; 10 &#x2F; 86 on this data. One window’s ceiling is about 0.20; every score above 0.22 on the board came from other windows, and the single-window line stopped moving at the third decimal after a week.</li>
+<li>Magnitude is cheap, direction is everything. σ from a tree model gives most of what magnitude can give and the ceiling of 0.48 correlation with |y| never moved; the direction hit rate of 56.5 % is exactly the Gaussian value for the cosine. Predictability is “how many ticks is σ”, and the energy sits in the stocks where that number is large.</li>
+<li>Timestamps are data. Three clocks survived the anonymisation, each one with its own physics (snapshot groups, Shenzhen jitter decaying with code distance, Shanghai 250 ms batches), and each gave a different fraction of the coverage. Reading how the data was generated was worth more than any model.</li>
+<li>Coverage beats precision. Whether any later window is connected matters, how many does not; the gains that realised one to one on the board were the ones that placed more windows, and the gap to perfect alignment was two thirds coverage and one third precision.</li>
+<li>Accumulate weak evidence instead of thresholding it. Window-to-template matching raised coverage and not the score; fragment-to-fragment scoring with a learned log-ratio table and a two-halves consistency rule is what held up, because one coincidence cannot pass and ten consistent weak links can.</li>
+<li>Validate with the test’s composition in mind. Four views, two folds by month parity, a probe to learn which half of the test is public, the ratio at which each kind of gain reached the board, time-reversed controls for every attach, triangle closure for every link family. Month 66 produced four fake gains in one day.</li>
+<li>Architecture search inside one window is noise. Sixty variants sat within ±0.003; the gains came from how data was handled (the sampling bug, the padding leak, pretraining, Noisy Student), not from structure. Two seeds and a paired difference are the minimum, and the standard deviation across seeds (0.0023) is the size of most improvements.</li>
+<li>Synthetic benchmarks lie about relevance. Eleven of twelve literature ideas worked on synthetic data, four on real; each failure had a premise that the market violated.</li>
+<li>Read the rules before building the second half. A was built, measured and probed before the host’s clarification arrived; a sentence on the data page decided more than any modelling, and the compliant version is the one that counts.</li>
+<li>Machine notes. One laptop (32 GB of memory, a 16 GB GPU) ran the whole thing, shared by several coding-agent sessions in parallel; memory, not the GPU, was the constraint, and pseudo samples had to be read in contiguous blocks or the page cache thrashed and the GPU idled at 17 %. A background shell made a training job five to seven times slower. Two sessions writing the same cache file in parallel wasted a packing round. A data vendor banned the IP at 24 concurrent requests. The private half of a probe submission was worth 0.053 and told us which half was public.</li>
+</ol>
+<h2 id="6-After-the-close"><a href="#6-After-the-close" class="headerlink" title="6. After the close"></a>6. After the close</h2><ul>
+<li><strong>The horizons.</strong> The 7th-place write-up gave the target as 0.9 r(60 s) + 0.45 r(300 s) + 0.15 r(1800 s), and external one-minute bars confirmed it (0.775 correlation against 0.656 for 60 &#x2F; 180 &#x2F; 585). Our time-axis features stopped at 585 seconds and missed the thirty-minute term entirely. Adding the component index at 300 to 1,800 seconds with the correct weights and some path-shape columns to the final recipe takes months 60 to 65 from 0.3735 to 0.3811, about 0.341 on the public board where tenth place was 0.344. The same write-up merged components by market resonance and anchored placements at the component level, which we did not do; our single-window placement found 3 to 6 % of true positions, a component carries far more evidence.</li>
+<li><strong>What a trader could use.</strong> With the aligned clock but only information before T (the market’s and the sector’s path up to T), the single-window model gains +0.0014: the market’s last minute is already in the window’s own book, and the minute-level market does not predict its own next minute. All of the lift in sections 3 and 4 is observation after T of other windows, which exists in a dataset and not in live trading. Sector residual co-movement at the minute scale is 0.4 to 1 % of the variance and simultaneous, not leading.</li>
+<li><strong>A backtest of the single-window prediction</strong> against real one-minute returns on the validation months: correlation 0.102, 0.108 and 0.079 with the 1, 3 and 10-minute return. A round trip costs 7.2 bp in fees and a median 10 bp of spread when taking; trading every signal loses 18 bp a trade. Trading only when the predicted move exceeds the cost: 2.7 trades a day at a 3-minute horizon, +22 bp net, Sharpe 4.9 in sample with thresholds chosen after the fact; out of time on the test period, +2.8 bp a trade and Sharpe 2.2, fading in 2026. Queueing passively at the tail of the book with a 15-second fill window loses even with the signal (fill rate 24 %, −0.7 bp per order after fees); the edge of a resting order belongs to the front of the queue, +9.8 bp realised half-spread after 30 seconds for stocks under 5 yuan and −0.3 bp above 50 yuan against 3.6 bp of cost per side.</li>
+<li><strong>Reproduction.</strong> The final pipeline is 71 numbered scripts in three stages. From 155 intermediate files (3.35 GB) the last stage reproduces both final submissions byte for byte in 20 minutes on a CPU; a full retrain from the raw files takes about 14 GPU hours and matches to 1e-5, which is as far as GPU training goes.</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/competition/" rel="tag"># competition</a>
+              <a href="/tags/machine-learning/" rel="tag"># machine learning</a>
+              <a href="/tags/quant/" rel="tag"># quant</a>
+              <a href="/tags/market-microstructure/" rel="tag"># market microstructure</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/10/25/kunlun-welllog-notes/" rel="prev" title="Kunlun well-log notes, reservoir parameters whose labels are an interpreter&#39;s formulas, law snapping, and where the points are lost">
+                  <i class="fa fa-angle-left"></i> Kunlun well-log notes, reservoir parameters whose labels are an interpreter's formulas, law snapping, and where the points are lost
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">sunArise</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
