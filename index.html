@@ -764,7 +764,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-10-31 01:00:00" itemprop="dateModified" datetime="2026-10-31T01:00:00+08:00">2026-10-31</time>
+      <time title="修改时间：2026-11-08 12:00:00" itemprop="dateModified" datetime="2026-11-08T12:00:00+08:00">2026-11-08</time>
     </span>
 
   
@@ -777,8 +777,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>A working log from the well-log problem of the PetroChina algorithm challenge (中国石油算法挑战赛, preliminary round on the Kunlun platform). First written on 2026-10-25 while the round was open; updated on 2026-10-31, after the round closed on 2026-10-30, with the last five days: the gate nets that gave the final score, the study of the water-saturation constant, a sweep of ten sequence-network families, and the final standing. Advancement uses a hidden board scored after the close, which had not been published when this update was written. The post describes the task, what the labels turned out to be, the model, the measurements and the dead ends, not the package code. Numbers are as of 2026-10-31 unless dated.</p>
-<p>The round has four problems: pump anomaly warning, fracturing oil-gain prediction, well-log reservoir parameters and reservoir connectivity. On the pump and fracturing boards the tenth place sits at 100.0 and 98.02, scores no forecast produces, so those two got the remaining effort and the well-log board, the one with an ordinary spread (first place 84.38, tenth about 84.1, fiftieth 83.53), got most of it. The final package stands at 83.619 on the public board, rank 54 of about 1,200 participants, up from the team’s 82.16 baseline of 09-14 (rank 253 on 10-18) and from 83.479 (rank 62) when this post was first written.</p>
+          <p>A working log from the well-log problem of the PetroChina algorithm challenge (中国石油算法挑战赛, preliminary round on the Kunlun platform). First written on 2026-10-25 while the round was open; updated on 2026-10-31, after the round closed on 2026-10-30, with the last five days: the gate nets that gave the final score, the study of the water-saturation constant, a sweep of ten sequence-network families, and the final standing; updated again on 2026-11-08 with the hidden B-board result, rank 25 of 961. The post describes the task, what the labels turned out to be, the model, the measurements and the dead ends, not the package code. Numbers are as of 2026-10-31 unless dated.</p>
+<p>The round has four problems: pump anomaly warning, fracturing oil-gain prediction, well-log reservoir parameters and reservoir connectivity. On the pump and fracturing boards the tenth place sits at 100.0 and 98.02, scores no forecast produces, so those two got the remaining effort and the well-log board, the one with an ordinary spread (first place 84.38, tenth about 84.1, fiftieth 83.53), got most of it. The final package placed 25th of 961 on the private B-board, which scores all 10 test wells and decides advancement. On the public A-board it scored 83.619 and finished at rank 60 in the final standings, up from the team’s 82.16 baseline of 09-14 (rank 253 on 10-18) and from 83.479 (rank 62) when this post was first written.</p>
 <h2 id="1-The-task"><a href="#1-The-task" class="headerlink" title="1. The task"></a>1. The task</h2><ul>
 <li>80 training wells with 730,268 depth points and 10 test wells with 95,948 points, at a 0.1 m step, one text file per well.</li>
 <li>Inputs per depth point: depth, gamma ray (GR), photoelectric factor (PE), spontaneous potential (SP), caliper (CAL), sonic travel time (AC), bulk density (DEN), neutron (CNL), two resistivities (RXO shallow, RT deep), deviation and azimuth, bit size, casing.</li>
@@ -956,7 +956,7 @@
 <td>two15nn (10-28)</td>
 <td align="right">82.19</td>
 <td align="right"><strong>83.619</strong></td>
-<td>three U-Net gate nets per fold directory mixed into the gates; +0.13 OOF became +0.14 on the board; rank 54, the final package</td>
+<td>three U-Net gate nets per fold directory mixed into the gates; +0.13 OOF became +0.14 on the board; the final package: rank 60 on the final A-board, rank 25 of 961 on the B-board</td>
 </tr>
 </tbody></table>
 <p>The gap between the OOF (82.19) and the A-board (83.62) says the five public wells are easier than the average training well. How much of an OOF gain reaches the board depends on the lever: law snapping 0.8, the second split 0.7, the gate nets about 1.0, router re-targeting 0.05 to 0.2, and a 0.1 difference between packages is within the calibration noise.</p>
@@ -1061,8 +1061,8 @@
 <li>Machine notes that cost hours: a stopped cloud pod can resume on another host with an empty container disk, so weights and zips go to the network volume; three concurrent CatBoost GPU jobs stall a 16 GB card; a background shell on this Windows machine makes a GPU job five to seven times slower, so nets train in the foreground; kill processes only by PID or exact script name.</li>
 </ol>
 <h2 id="9-Where-it-ended"><a href="#9-Where-it-ended" class="headerlink" title="9. Where it ended"></a>9. Where it ended</h2><ul>
-<li>The public board closed with the team at 83.619, rank 54; the tenth place was about 84.1 and the first 84.38. The top 10 needed another +0.5, and no lever on the list had it: the per-layer SW constant, worth about 3 points if known, is an interpreter’s table that the logs do not compute, and the public board’s per-well knobs did not compose.</li>
-<li>The hidden B-board, all 10 wells, decides advancement and is scored after the close.</li>
+<li>The public A-board closed with the team at 83.619, rank 60 in the final standings; the tenth place was about 84.1 and the first 84.38. The top 10 needed another +0.5, and no lever on the list had it: the per-layer SW constant, worth about 3 points if known, is an interpreter’s table that the logs do not compute, and the public board’s per-well knobs did not compose.</li>
+<li>The private B-board, which scores all 10 wells and decides advancement, placed the team 25th of 961, 35 places above its final A-board rank. The package had been chosen on the cross-fitted OOF over all 80 training wells, not on the five public wells, whose board carried about 2 points of standard error (section 1).</li>
 <li>Not run, and what I would try with more time: a joint latent-state decoder (the POR law, the PERM law and the SW constant decoded together along depth, using the shared boundaries measured in section 2); a POR gate target in the sequence zoo, since the gate is where the nets paid off; and the RT residual (measured minus predicted RT, three times better than the trivial predictor) as a feature for the SW trees.</li>
 <li>Not planned: larger sequence models, more fold splits, more individual POR laws, generic features already among the 425, and per-row smoothing over the same probabilities. All of these produced gains below +0.05 OOF and transferred at a fraction of that.</li>
 </ul>
